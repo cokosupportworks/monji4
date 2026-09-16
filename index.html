@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>もんじぼたる４</title>
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="apple-touch-icon.png">
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --border: #cbd5e1;
+      --radius: 16px;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body {
+      font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'BIZ UDPGothic', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      touch-action: none;
+    }
+    header {
+      background: #ffffff;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 10;
+    }
+    .app-title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+    }
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+    }
+    .word-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      max-width: 32vw;
+      padding: 2px;
+    }
+    .word-pill {
+      background: #f1f5f9;
+      border: 2px solid #cbd5e1;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 0.95rem;
+    }
+    .word-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary-hover);
+    }
+    .word-pill.completed {
+      background: #dcfce7;
+      color: #166534;
+      border-color: #86efac;
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn {
+      appearance: none;
+      border: 2px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 7px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: transform 0.1s, background-color 0.15s;
+    }
+    .btn:active {
+      transform: scale(0.95);
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary-hover);
+    }
+    .btn-record {
+      background: #ecfdf5;
+      color: #065f46;
+      border-color: #a7f3d0;
+    }
+    .badge {
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 2px solid #7dd3fc;
+      background: #e0f2fe;
+      color: #0369a1;
+      white-space: nowrap;
+    }
+    .badge.easy { background: #fef9c3; border-color: #fde047; color: #854d0e; }
+    .badge.strict { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+
+    main {
+      flex: 1;
+      display: flex;
+      padding: 12px;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .sidebar {
+      width: 130px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: center;
+    }
+    .tool-card {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: var(--radius);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tool-btn {
+      width: 100%;
+      padding: 10px 4px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      border: 2px solid #e2e8f0;
+      background: #f8fafc;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .tool-btn:active {
+      transform: scale(0.95);
+    }
+    .tool-btn.active {
+      background: #eff6ff;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .center-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      max-width: min(70vh, 560px);
+      width: 100%;
+    }
+    .stage {
+      width: 100%;
+      aspect-ratio: 1/1;
+      position: relative;
+      background: #ffffff;
+      border-radius: 24px;
+      border: 4px solid #334155;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+    .grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .grid-inner {
+      position: absolute;
+      inset: 10px;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+    }
+    .grid-h {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      right: 10px;
+      height: 2px;
+      background-image: linear-gradient(to right, #94a3b8 50%, transparent 0%);
+      background-size: 14px 2px;
+    }
+    .grid-v {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      background-image: linear-gradient(to bottom, #94a3b8 50%, transparent 0%);
+      background-size: 2px 14px;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    #templateCanvas { z-index: 2; pointer-events: none; }
+    #drawCanvas { z-index: 4; cursor: crosshair; }
+    #animCanvas { z-index: 6; pointer-events: none; }
+    .counter {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(255,255,255,0.92);
+      border: 2px solid #cbd5e1;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .counter span { color: var(--primary); font-size: 1.15rem; }
+    .toast {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(40px);
+      background: #1e293b;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.25s ease;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { background: var(--danger); }
+    .toast.success { background: var(--success); }
+    
+    .hanamaru-container {
+      width: 100%;
+      height: 60px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      margin-top: 12px;
+    }
+    .hanamaru-container.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.6);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #ffffff;
+      width: 100%;
+      max-width: 640px;
+      max-height: 85vh;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 3px solid #e2e8f0;
+    }
+    .modal-head {
+      padding: 14px 18px;
+      border-bottom: 2px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      font-weight: 900;
+    }
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #f1f5f9;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tab-btn.active { background: var(--primary); color: #ffffff; }
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+      gap: 6px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .char-card {
+      aspect-ratio: 1/1;
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1.3rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+    }
+    .char-card:active { background: #dbeafe; }
+    .input-box { display: flex; gap: 6px; }
+    .text-input {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 2px solid #cbd5e1;
+      font-size: 1rem;
+      font-family: inherit;
+      font-weight: 700;
+      outline: none;
+    }
+    .text-input:focus { border-color: var(--primary); }
+    .slider { width: 100%; height: 8px; border-radius: 4px; accent-color: var(--primary); }
+
+    /* 学習記録モーダル専用スタイル */
+    .record-stats-bar {
+      display: flex;
+      gap: 12px;
+      background: #f1f5f9;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .record-stats-bar span b {
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+    .record-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .record-card {
+      position: relative;
+      aspect-ratio: 1/1;
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 1.3rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+    .record-card:active {
+      transform: scale(0.93);
+    }
+    .record-card.practiced {
+      background: #f0fdf4;
+      border-color: #86efac;
+      color: #166534;
+    }
+    .record-card .stamp-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 0.55rem;
+      font-weight: 900;
+      padding: 1px 3px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .record-card .count-badge {
+      position: absolute;
+      bottom: 2px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #059669;
+      line-height: 1;
+    }
+
+    @media (max-width: 768px) {
+      main { flex-direction: column; padding: 6px; gap: 6px; }
+      .sidebar { width: 100%; height: auto; flex-direction: row; justify-content: space-around; }
+      .tool-card { flex-direction: row; width: 100%; justify-content: space-around; }
+      .center-container { max-width: min(55vh, 90vw); }
+      .word-pills { max-width: 25vw; }
+      .hanamaru-container { margin-top: 6px; height: 50px; gap: 10px; }
+      .hanamaru-container #hanamaru-msg { font-size: 1rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <svg id="svgHelper" style="position:fixed; top:-9999px; left:-9999px; width:109px; height:109px; visibility:hidden; pointer-events:none;" viewBox="0 0 109 109">
+    <path id="svgHelperPath" d="" />
+  </svg>
+
+  <header>
+    <div class="app-title-area">
+      <div class="logo">もんじぼたる４</div>
+      <div class="word-pills" id="wordPills"></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-record" id="btnOpenRecord">📊 記録</button>
+      <button class="btn btn-primary" id="btnOpenSelect">📖 お題</button>
+      <div class="badge" id="badgeStrict" title="判定変更">判定: ふつう</div>
+      <button class="btn" id="btnSound">🔊</button>
+      <button class="btn" id="btnSettings">⚙️</button>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <div class="tool-card">
+        <button class="tool-btn" id="btnDemo"><span>▶️</span>お手本</button>
+        <button class="tool-btn" id="btnUndo"><span>↩️</span>一画戻す</button>
+        <button class="tool-btn" id="btnReset"><span>🔄</span>やり直す</button>
+      </div>
+      <div class="tool-card">
+        <button class="tool-btn active" id="btnGrid"><span>田</span>マス目</button>
+        <button class="tool-btn active" id="btnGuide"><span>📍</span>始点ガイド</button>
+      </div>
+    </aside>
+
+    <div class="center-container">
+      <section class="stage" id="stage">
+        <div class="grid" id="gridLayer">
+          <div class="grid-inner"></div>
+          <div class="grid-h"></div>
+          <div class="grid-v"></div>
+        </div>
+        <div class="counter"><span id="curStroke">1</span> / <span id="totalStroke">3</span> 画</div>
+        <canvas id="templateCanvas"></canvas>
+        <canvas id="drawCanvas"></canvas>
+        <canvas id="animCanvas"></canvas>
+        <div class="toast" id="toast"></div>
+      </section>
+
+      <div class="hanamaru-container" id="hanamaru">
+        <div id="hanamaru-msg" style="font-size:1.2rem; font-weight:900; color:#dc2626; white-space:nowrap;">合格！</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary" id="btnNextCharStamp">つぎの文字 ➔</button>
+          <button class="btn" id="btnReplayCharStamp">もう一度 🔄</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="sidebar" style="justify-content: center;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="tool-card">
+          <button class="tool-btn" id="btnPrev"><span>⬅️</span>前の文字</button>
+          <button class="tool-btn" id="btnNext"><span>➡️</span>次の文字</button>
+        </div>
+        <div class="tool-card">
+          <button class="tool-btn" id="btnSkip"><span>⏩</span>一画パス</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 1. Select Modal -->
+  <div class="modal-overlay" id="modalSelect">
+    <div class="modal">
+      <div class="modal-head">
+        <span>📖 お題の文字をえらぶ</span>
+        <button class="btn" id="btnCloseSelect">✕</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <label style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">✍️ 好きな文字・言葉を入力（名前、熟語など）</label>
+          <div class="input-box">
+            <input type="text" class="text-input" id="customInput" placeholder="例：やま、川、学校、ありがとう" maxlength="20">
+            <button class="btn btn-primary" id="btnApplyCustom">決定</button>
+          </div>
+        </div>
+        <hr style="border:none; border-top:1px solid #e2e8f0;">
+        <div class="tab-bar" id="tabBar">
+          <button class="tab-btn active" data-tab="hiragana">ひらがな</button>
+          <button class="tab-btn" data-tab="katakana">カタカナ</button>
+          <button class="tab-btn" data-tab="kanji1">小1 漢字</button>
+          <button class="tab-btn" data-tab="kanji2">小2 漢字</button>
+          <button class="tab-btn" data-tab="numbers">すうじ</button>
+        </div>
+        <div class="char-grid" id="charGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Learning Records Modal -->
+  <div class="modal-overlay" id="modalRecord">
+    <div class="modal">
+      <div class="modal-head">
+        <span>📊 がくしゅう記録・練習一覧</span>
+        <button class="btn" id="btnCloseRecord">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="record-stats-bar">
+          <span>練習した文字の種類: <b id="statUniqueCount">0</b> 文字</span>
+          <span>総クリア回数: <b id="statTotalCount">0</b> 回</span>
+        </div>
+        <div class="tab-bar" id="recordTabBar">
+          <button class="tab-btn active" data-tab="hiragana">ひらがな</button>
+          <button class="tab-btn" data-tab="katakana">カタカナ</button>
+          <button class="tab-btn" data-tab="kanji1">小1 漢字</button>
+          <button class="tab-btn" data-tab="kanji2">小2 漢字</button>
+          <button class="tab-btn" data-tab="numbers">すうじ</button>
+          <button class="tab-btn" data-tab="custom">自由入力の履歴</button>
+        </div>
+        <div class="record-grid" id="recordGrid"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+          <small style="color:#64748b; font-weight:700;">※文字をタップするとすぐに練習できます</small>
+          <button class="btn" id="btnResetHistory" style="color:var(--danger); border-color:#fca5a5;">記録リセット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Settings Modal -->
+  <div class="modal-overlay" id="modalSettings">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-head">
+        <span>⚙️ 設定・判定の厳しさ調整</span>
+        <button class="btn" id="btnCloseSettings">✕</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <label style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">🎯 判定の厳しさプリセット</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+            <button class="btn set-strict" data-level="easy">🌱 甘口<br><small>やさしい</small></button>
+            <button class="btn set-strict btn-primary" data-level="normal">⭐ ふつう<br><small>標準</small></button>
+            <button class="btn set-strict" data-level="strict">🔥 辛口<br><small>美文字</small></button>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-bottom:4px;">
+            <span>線のブレ許容幅</span><span id="lblTol">26px</span>
+          </div>
+          <input type="range" class="slider" id="sldTol" min="14" max="46" value="26">
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-bottom:4px;">
+            <span>塗りつぶし・書き殴り検知</span><span id="lblFill">1.6倍まで</span>
+          </div>
+          <input type="range" class="slider" id="sldFill" min="12" max="25" value="16">
+        </div>
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 8px 0;">
+        <div>
+          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-bottom:4px;">
+            <span>お手本線の濃さ</span><span id="lblOpac">100%</span>
+          </div>
+          <input type="range" class="slider" id="sldOpac" min="10" max="100" value="100">
+        </div>
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; margin-top: 8px;">
+          <label style="display:flex; align-items:center; gap:8px; font-weight:900; cursor:pointer;">
+            <input type="checkbox" id="chkHotaru" style="width:20px; height:20px;">
+            ✨ もんじぼたる（点滅）モード
+          </label>
+          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-top:10px; margin-bottom:4px;">
+            <span>見えている時間</span><span id="lblHotaruVis">2.0秒</span>
+          </div>
+          <input type="range" class="slider" id="sldHotaruVis" min="5" max="100" value="20">
+          
+          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-top:10px; margin-bottom:4px;">
+            <span>消えている時間</span><span id="lblHotaruHid">1.0秒</span>
+          </div>
+          <input type="range" class="slider" id="sldHotaruHid" min="5" max="100" value="10">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // 1. Web Audio Synthesizer
+    class Sound {
+      constructor() { this.ctx = null; this.on = true; }
+      init() {
+        if (!this.ctx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) this.ctx = new AC();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(()=>{});
+      }
+      success() {
+        if (!this.on) return; this.init(); if (!this.ctx) return;
+        try {
+          const t = this.ctx.currentTime, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+          o.type = 'sine'; o.frequency.setValueAtTime(523.25, t); o.frequency.setValueAtTime(783.99, t + 0.08);
+          g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+          o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.3);
+        } catch(e){}
+      }
+      fail() {
+        if (!this.on) return; this.init(); if (!this.ctx) return;
+        try {
+          const t = this.ctx.currentTime, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+          o.type = 'triangle'; o.frequency.setValueAtTime(329.63, t); o.frequency.linearRampToValueAtTime(261.63, t + 0.2);
+          g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+          o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.25);
+        } catch(e){}
+      }
+      complete() {
+        if (!this.on) return; this.init(); if (!this.ctx) return;
+        try {
+          const t = this.ctx.currentTime;
+          [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+            const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+            o.type = 'triangle'; o.frequency.setValueAtTime(f, t + i * 0.09);
+            g.gain.setValueAtTime(0.18, t + i * 0.09); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.6);
+            o.connect(g); g.connect(this.ctx.destination); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.6);
+          });
+        } catch(e){}
+      }
+    }
+    const sound = new Sound();
+
+    class SpeechHelper {
+      constructor() {
+        this.enabled = true;
+      }
+      speak(text, rate = 0.85) {
+        if (!this.enabled || !('speechSynthesis' in window) || !text) return;
+        try {
+          window.speechSynthesis.cancel();
+          const uttr = new SpeechSynthesisUtterance(text);
+          uttr.lang = 'ja-JP';
+          uttr.rate = rate; // 特別支援教育向けにややゆっくり落ち着いたスピード
+          uttr.pitch = 1.15; // 親しみやすい明るいトーン
+          window.speechSynthesis.speak(uttr);
+        } catch (e) {}
+      }
+    }
+    const speech = new SpeechHelper();
+
+    // 2. Preset Lists
+    const PRESETS = {
+      hiragana: 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'.split(''),
+      katakana: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン'.split(''),
+      kanji1: '一二三四五六七八九十百千上下左右中大小月日年早木林森山川土空田天生花草犬虫音町村男女子目耳手足見立休言字学校文本日名正水火'.split(''),
+      kanji2: '引羽雲園遠何科夏家歌画会回海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元原戸古午後語工公広交光考行'.split(''),
+      numbers: ['1','2','3','4','5','6','7','8','9','0']
+    };
+
+    // 3. Official KanjiVG Stroke Vector Loader
+    class StrokeLoader {
+      constructor() {
+        this.cache = new Map();
+      }
+      getHex(ch) {
+        return ch.codePointAt(0).toString(16).padStart(5, '0');
+      }
+      async load(ch) {
+        if (this.cache.has(ch)) return this.cache.get(ch);
+        const k = `kvg_${ch}`;
+        try {
+          const local = localStorage.getItem(k);
+          if (local) {
+            const p = JSON.parse(local);
+            if (Array.isArray(p) && p.length > 0) {
+              this.cache.set(ch, p);
+              return p;
+            }
+          }
+        } catch(e) {}
+
+        const hex = this.getHex(ch);
+        const urls = [
+          `https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@master/kanji/${hex}.svg`,
+          `https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/${hex}.svg`,
+          `https://unpkg.com/kanjivg@latest/kanji/${hex}.svg`
+        ];
+
+        for (const u of urls) {
+          try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2500);
+            const res = await fetch(u, { cache: 'force-cache', signal: controller.signal });
+            clearTimeout(timer);
+            if (res.ok) {
+              const txt = await res.text();
+              const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
+              const paths = Array.from(doc.querySelectorAll('path[d]'))
+                .filter(p => !((p.getAttribute('id') || '').includes('StrokeNumbers')))
+                .map(p => p.getAttribute('d'));
+              if (paths.length > 0) {
+                this.cache.set(ch, paths);
+                try { localStorage.setItem(k, JSON.stringify(paths)); } catch(e) {}
+                return paths;
+              }
+            }
+          } catch(e) {}
+        }
+
+        return ["M25,25 L85,85", "M85,25 L25,85"];
+      }
+    }
+    const loader = new StrokeLoader();
+
+    // 4. SVG Curve Sampler
+    function samplePath(dStr, w, h) {
+      const margin = w * 0.12, area = w - margin * 2, scale = area / 109;
+      try {
+        const pEl = document.getElementById('svgHelperPath');
+        if (pEl && pEl.getTotalLength) {
+          pEl.setAttribute('d', dStr);
+          const L = pEl.getTotalLength();
+          if (L > 0) {
+            const count = Math.max(30, Math.ceil(L * scale / 2));
+            const pts = [];
+            for (let i = 0; i <= count; i++) {
+              const pt = pEl.getPointAtLength((i / count) * L);
+              pts.push({ x: margin + pt.x * scale, y: margin + pt.y * scale });
+            }
+            return pts;
+          }
+        }
+      } catch(e) {}
+      return parsePathMath(dStr, scale, margin);
+    }
+
+    function parsePathMath(dStr, scale, offset) {
+      const tokens = dStr.match(/([a-df-z]|[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\\d+)?)/gi) || [];
+      let cx = 0, cy = 0, lx = 0, ly = 0, lastCmd = '', i = 0;
+      const pts = [];
+      const num = () => parseFloat(tokens[i++]);
+
+      while (i < tokens.length) {
+        const tok = tokens[i++];
+        if (/^[a-df-z]$/i.test(tok)) lastCmd = tok;
+        else i--;
+        const cmd = lastCmd, rel = (cmd === cmd.toLowerCase()), type = cmd.toUpperCase();
+
+        if (type === 'M') {
+          cx = num() + (rel ? cx : 0); cy = num() + (rel ? cy : 0);
+          pts.push({ x: offset + cx * scale, y: offset + cy * scale });
+          lastCmd = rel ? 'l' : 'L';
+        } else if (type === 'L' || type === 'H' || type === 'V') {
+          let nx = cx, ny = cy;
+          if (type === 'L') { nx = num() + (rel ? cx : 0); ny = num() + (rel ? cy : 0); }
+          else if (type === 'H') nx = num() + (rel ? cx : 0);
+          else if (type === 'V') ny = num() + (rel ? cy : 0);
+          for (let s = 1; s <= 10; s++) {
+            const t = s / 10;
+            pts.push({ x: offset + (cx + t*(nx-cx))*scale, y: offset + (cy + t*(ny-cy))*scale });
+          }
+          cx = nx; cy = ny;
+        } else if (type === 'C' || type === 'S') {
+          let cp1x = cx, cp1y = cy;
+          if (type === 'C') { cp1x = num() + (rel ? cx : 0); cp1y = num() + (rel ? cy : 0); }
+          else if ('CS'.includes(lastCmd.toUpperCase())) { cp1x = 2*cx - lx; cp1y = 2*cy - ly; }
+          const cp2x = num() + (rel ? cx : 0), cp2y = num() + (rel ? cy : 0);
+          const ex = num() + (rel ? cx : 0), ey = num() + (rel ? cy : 0);
+          for (let s = 1; s <= 20; s++) {
+            const t = s / 20, mt = 1 - t;
+            const x = mt*mt*mt*cx + 3*mt*mt*t*cp1x + 3*mt*t*t*cp2x + t*t*t*ex;
+            const y = mt*mt*mt*cy + 3*mt*mt*t*cp1y + 3*mt*t*t*cp2y + t*t*t*ey;
+            pts.push({ x: offset + x * scale, y: offset + y * scale });
+          }
+          lx = cp2x; ly = cp2y; cx = ex; cy = ey;
+        }
+      }
+      return pts;
+    }
+
+    // 5. Strict Stroke Evaluator
+    function evaluateStroke(targetPts, userPts, cfg) {
+      if (!userPts || userPts.length < 3) return { pass: false, msg: '線が短すぎます' };
+      const d = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+      let tLen = 0, uLen = 0;
+      for (let i = 0; i < targetPts.length - 1; i++) tLen += d(targetPts[i], targetPts[i+1]);
+      for (let i = 0; i < userPts.length - 1; i++) uLen += d(userPts[i], userPts[i+1]);
+
+      // 1) Direction & Endpoints
+      const dStart = d(userPts[0], targetPts[0]), dEnd = d(userPts[userPts.length-1], targetPts[targetPts.length-1]);
+      const dRevS = d(userPts[0], targetPts[targetPts.length-1]), dRevE = d(userPts[userPts.length-1], targetPts[0]);
+      if (dRevS < dStart && dRevE < dEnd) return { pass: false, msg: 'なぞる向きが逆です（始点から書きましょう）' };
+      if (dStart > cfg.startTol) return { pass: false, msg: '書き始めの位置がずれています' };
+      if (dEnd > cfg.startTol) return { pass: false, msg: '書き終わりの位置がずれています' };
+
+      // 2) Anti-scribble / Anti-coloring
+      const ratio = uLen / Math.max(1, tLen);
+      if (ratio > cfg.maxRatio) return { pass: false, msg: 'なぞりすぎ（塗りつぶし）です。一筆でスッと書きましょう' };
+      if (ratio < 0.55) return { pass: false, msg: '線が途中で終わっています' };
+
+      // 3) Envelope & Coverage
+      let valid = 0, minP = 1, maxP = 0;
+      for (const u of userPts) {
+        let minDist = Infinity, pRatio = 0, cAcc = 0;
+        for (let j = 0; j < targetPts.length - 1; j++) {
+          const v = targetPts[j], w = targetPts[j+1], sl = d(v, w);
+          const l2 = (v.x - w.x)**2 + (v.y - w.y)**2;
+          let t = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((u.x-v.x)*(w.x-v.x) + (u.y-v.y)*(w.y-v.y))/l2));
+          const projDist = d(u, { x: v.x + t*(w.x-v.x), y: v.y + t*(w.y-v.y) });
+          if (projDist < minDist) { minDist = projDist; pRatio = (cAcc + t*sl) / Math.max(1, tLen); }
+          cAcc += sl;
+        }
+        if (minDist <= cfg.dev) valid++;
+        if (pRatio < minP) minP = pRatio;
+        if (pRatio > maxP) maxP = pRatio;
+      }
+      if (valid / userPts.length < cfg.validRatio) return { pass: false, msg: 'お題の線から外れています' };
+      if ((maxP - minP) < cfg.minCoverage) return { pass: false, msg: '最後までしっかりなぞりましょう' };
+
+      return { pass: true, msg: '合格！' };
+    }
+
+    // 6. Main App Controller
+    class App {
+      constructor() {
+        this.word = 'あ';
+        this.chars = Array.from(this.word);
+        this.cIdx = 0;
+        this.strokes = [];
+        this.sIdx = 0;
+        this.drawing = [];
+        this.userStrokes = []; // 軌跡保存用配列
+        this.isDown = false;
+        this.showGrid = true;
+        this.showGuide = true;
+        this.currentCategoryTab = 'hiragana';
+        
+        // もんじぼたる設定
+        this.baseOpacity = 1.0;
+        this.hotaru = {
+          enabled: false,
+          visibleSec: 2.0,
+          hiddenSec: 1.0,
+          currentOpacity: 1.0,
+          startTime: 0
+        };
+
+        // 集中ロックモード
+        this.isLocked = false;
+        
+        // ご褒美スタンプのバリエーション定義
+        this.stampVariations = [
+          { // 1. 基本の花丸
+            color: '#dc2626', msg: 'ごうかく！はなまる',
+            svg: `<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="85" fill="#fee2e2"/><circle cx="100" cy="100" r="75" fill="none" stroke="#dc2626" stroke-width="5" stroke-dasharray="8 4"/><circle cx="100" cy="100" r="50" fill="none" stroke="#dc2626" stroke-width="5"/><text x="100" y="106" font-size="28" font-weight="900" fill="#dc2626" text-anchor="middle">たいへん</text><text x="100" y="136" font-size="24" font-weight="900" fill="#dc2626" text-anchor="middle">よくできました</text></svg>`
+          },
+          { // 2. ピカピカ王冠
+            color: '#d97706', msg: 'すごい！きみは天才',
+            svg: `<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="85" fill="#fef3c7"/><path d="M40 140 L40 90 L70 110 L100 60 L130 110 L160 90 L160 140 Z" fill="#fbbf24" stroke="#d97706" stroke-width="4"/><circle cx="40" cy="85" r="8" fill="#ef4444"/><circle cx="100" cy="55" r="10" fill="#3b82f6"/><circle cx="160" cy="85" r="8" fill="#10b981"/><text x="100" y="170" font-size="22" font-weight="900" fill="#d97706" text-anchor="middle">パーフェクト</text></svg>`
+          },
+          { // 3. 元気なロケット
+            color: '#0284c7', msg: 'かっこいい！うちゅう級',
+            svg: `<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="85" fill="#e0f2fe"/><path d="M100 40 Q130 90 120 140 L80 140 Q70 90 100 40 Z" fill="#e2e8f0" stroke="#0284c7" stroke-width="4"/><path d="M120 120 L150 150 L120 140 Z" fill="#ef4444"/><path d="M80 120 L50 150 L80 140 Z" fill="#ef4444"/><circle cx="100" cy="100" r="15" fill="#38bdf8" stroke="#0284c7" stroke-width="3"/><path d="M90 140 L100 170 L110 140 Z" fill="#f59e0b"/><text x="100" y="185" font-size="20" font-weight="900" fill="#0284c7" text-anchor="middle">ととのいました！</text></svg>`
+          },
+          { // 4. ニコニコくまさん
+            color: '#166534', msg: 'ばっちり！カンペキ',
+            svg: `<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="85" fill="#dcfce7"/><circle cx="65" cy="65" r="25" fill="#fcd34d" stroke="#b45309" stroke-width="4"/><circle cx="135" cy="65" r="25" fill="#fcd34d" stroke="#b45309" stroke-width="4"/><circle cx="100" cy="110" r="55" fill="#fcd34d" stroke="#b45309" stroke-width="4"/><circle cx="80" cy="100" r="6" fill="#451a03"/><circle cx="120" cy="100" r="6" fill="#451a03"/><ellipse cx="100" cy="120" rx="15" ry="10" fill="#fef3c7"/><circle cx="100" cy="115" r="4" fill="#451a03"/><text x="100" y="185" font-size="22" font-weight="900" fill="#166534" text-anchor="middle">すばらしい！</text></svg>`
+          }
+        ];
+
+        // 学習履歴の読み込み
+        this.history = this.loadHistory();
+
+        this.level = 'normal';
+        this.params = {
+          easy: { dev: 38, startTol: 45, maxRatio: 2.2, validRatio: 0.72, minCoverage: 0.65 },
+          normal: { dev: 26, startTol: 32, maxRatio: 1.6, validRatio: 0.85, minCoverage: 0.80 },
+          strict: { dev: 16, startTol: 20, maxRatio: 1.3, validRatio: 0.92, minCoverage: 0.90 }
+        };
+
+        this.stage = document.getElementById('stage');
+        this.tplCanvas = document.getElementById('templateCanvas');
+        this.drwCanvas = document.getElementById('drawCanvas');
+        this.anmCanvas = document.getElementById('animCanvas');
+        this.tplCtx = this.tplCanvas.getContext('2d');
+        this.drwCtx = this.drwCanvas.getContext('2d');
+        this.anmCtx = this.anmCanvas.getContext('2d');
+        this.toast = document.getElementById('toast');
+        this.hanamaru = document.getElementById('hanamaru');
+
+        this.bindEvents();
+        this.resize();
+        window.addEventListener('resize', () => { this.resize(); this.render(); });
+        this.setWord(this.word);
+      }
+
+      loadHistory() {
+        try {
+          const raw = localStorage.getItem('trace_study_history');
+          return raw ? JSON.parse(raw) : {};
+        } catch(e) {
+          return {};
+        }
+      }
+
+      saveHistoryRecord(char) {
+        if (!char) return;
+        if (!this.history[char]) {
+          this.history[char] = { count: 0, lastDate: null };
+        }
+        this.history[char].count += 1;
+        this.history[char].lastDate = new Date().toISOString();
+        try {
+          localStorage.setItem('trace_study_history', JSON.stringify(this.history));
+        } catch(e) {}
+      }
+
+      startHotaru() {
+        if (!this.hotaru.enabled) return;
+        this.hotaru.startTime = performance.now();
+        if (!this.hotaruAnimId) {
+          const loop = (time) => {
+            if (!this.hotaru.enabled) {
+              this.hotaruAnimId = null;
+              this.hotaru.currentOpacity = this.baseOpacity;
+              this.renderTemplate();
+              return;
+            }
+            const elapsed = (time - this.hotaru.startTime) / 1000;
+            const cycle = this.hotaru.visibleSec + this.hotaru.hiddenSec;
+            const phaseTime = elapsed % cycle;
+            
+            // 蛍のような滑らかなフェードを計算（0.3秒間でフェードイン/アウト）
+            // 設定時間が短すぎる場合は半分の時間でフェード
+            const fadeDur = Math.min(0.3, this.hotaru.visibleSec / 2, this.hotaru.hiddenSec / 2);
+            
+            let val = 0;
+            if (phaseTime < this.hotaru.visibleSec) {
+              // 見えている時間帯
+              if (phaseTime < fadeDur) {
+                // フェードイン中
+                val = phaseTime / fadeDur;
+              } else if (phaseTime > this.hotaru.visibleSec - fadeDur) {
+                // フェードアウト中
+                val = (this.hotaru.visibleSec - phaseTime) / fadeDur;
+              } else {
+                // 完全表示
+                val = 1.0;
+              }
+            } else {
+              // 消えている時間帯は完全に0
+              val = 0.0;
+            }
+            
+            // うっすら残さず、完全に消えるように minOpacity は 0 にする
+            this.hotaru.currentOpacity = val * this.baseOpacity;
+            
+            // アニメーション中は重い全体描画を避け、お手本レイヤーのみ更新する
+            this.renderTemplate();
+            this.hotaruAnimId = requestAnimationFrame(loop);
+          };
+          this.hotaruAnimId = requestAnimationFrame(loop);
+        }
+      }
+
+      stopHotaru() {
+        if (this.hotaruAnimId) {
+          cancelAnimationFrame(this.hotaruAnimId);
+          this.hotaruAnimId = null;
+        }
+        this.hotaru.currentOpacity = this.baseOpacity;
+        this.renderTemplate();
+      }
+
+      resize() {
+        const r = this.stage.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+        const w = r.width || 460, h = r.height || 460;
+        [this.tplCanvas, this.drwCanvas, this.anmCanvas].forEach(c => {
+          c.width = w * dpr; c.height = h * dpr;
+          const ctx = c.getContext('2d'); ctx.setTransform(1,0,0,1,0,0); ctx.scale(dpr, dpr);
+        });
+        this.W = w; this.H = h;
+      }
+
+      async setWord(w) {
+        if (!w || !w.trim()) return;
+        this.word = w.trim();
+        this.chars = Array.from(this.word);
+        this.cIdx = 0;
+        this.renderPills();
+        await this.loadChar();
+      }
+
+      renderPills() {
+        const c = document.getElementById('wordPills');
+        if (!c) return;
+        c.innerHTML = '';
+        this.chars.forEach((ch, i) => {
+          const p = document.createElement('div');
+          p.className = `word-pill ${i === this.cIdx ? 'active' : ''}`;
+          p.textContent = `${i + 1}. ${ch}`;
+          p.onclick = () => { if (this.cIdx !== i) { this.cIdx = i; this.renderPills(); this.loadChar(); } };
+          c.appendChild(p);
+        });
+      }
+
+      async loadChar() {
+        if (this.hanamaru) this.hanamaru.classList.remove('show');
+        this.stopAnim();
+        if (this.hotaru.enabled) this.startHotaru();
+        const ch = this.chars[this.cIdx];
+        this.strokes = await loader.load(ch);
+        this.sIdx = 0;
+        this.drawing = [];
+        this.userStrokes = []; // 追加：文字切り替え時に軌跡をリセット
+        const curEl = document.getElementById('curStroke');
+        const totEl = document.getElementById('totalStroke');
+        if (curEl) curEl.textContent = 1;
+        if (totEl) totEl.textContent = this.strokes.length;
+        this.renderPills();
+        this.render();
+
+        if (ch) {
+          // 文字の音声を読み上げ（視覚と聴覚の連合）
+          speech.speak(ch);
+        }
+      }
+
+      render() {
+        // 描画エンジンを分離し、必要なレイヤーだけを更新できるように最適化
+        this.renderTemplate();
+        this.renderDrawing();
+      }
+
+      renderTemplate() {
+        const ctx = this.tplCtx;
+        ctx.clearRect(0, 0, this.W, this.H);
+        if (!this.strokes || this.strokes.length === 0) return;
+
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        this.strokes.forEach((d, i) => {
+          const pts = samplePath(d, this.W, this.H);
+          if (pts.length === 0) return;
+
+          if (i < this.sIdx) {
+            ctx.beginPath();
+            // ユーザーが書いた軌跡が保存されていればそれを描画する
+            if (this.userStrokes && this.userStrokes[i] && this.userStrokes[i].length > 0) {
+              const uPts = this.userStrokes[i];
+              ctx.moveTo(uPts[0].x, uPts[0].y);
+              for (let k = 1; k < uPts.length; k++) ctx.lineTo(uPts[k].x, uPts[k].y);
+            } else {
+              // スキップ時など軌跡がない場合はお手本を描画
+              ctx.moveTo(pts[0].x, pts[0].y);
+              for (let j = 1; j < pts.length; j++) ctx.lineTo(pts[j].x, pts[j].y);
+            }
+            ctx.globalAlpha = 1.0; // 書き終わった線ははっきり表示
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 14; ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (let j = 1; j < pts.length; j++) ctx.lineTo(pts[j].x, pts[j].y);
+
+            if (i === this.sIdx) {
+              // 完成後でない場合のみ半透明や点滅を適用
+              if (this.sIdx < this.strokes.length) {
+                ctx.globalAlpha = this.hotaru.currentOpacity;
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)'; ctx.lineWidth = 18; ctx.stroke();
+                ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 3; ctx.setLineDash([8, 6]); ctx.stroke(); ctx.setLineDash([]);
+              
+                // 空間認知・方向ガイド（始点バッジ ＋ 運筆方向の矢印表示）
+                if (this.showGuide && pts.length > 0) {
+                  const sp = pts[0];
+                  ctx.beginPath(); ctx.arc(sp.x, sp.y, 14, 0, Math.PI*2); ctx.fillStyle = 'rgba(239,68,68,0.25)'; ctx.fill();
+                  ctx.beginPath(); ctx.arc(sp.x, sp.y, 8, 0, Math.PI*2); ctx.fillStyle = '#dc2626'; ctx.fill();
+                  ctx.beginPath(); ctx.arc(sp.x - 18, sp.y - 18, 12, 0, Math.PI*2); ctx.fillStyle = '#2563eb'; ctx.fill();
+                  ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                  ctx.fillText(i + 1, sp.x - 18, sp.y - 18);
+                  
+                  // 運筆方向の矢印を2箇所程度に描画
+                  this.drawDirectionArrows(ctx, pts);
+                }
+              }
+            } else {
+              ctx.globalAlpha = 1.0;
+              ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)'; ctx.lineWidth = 14; ctx.stroke();
+            }
+            ctx.globalAlpha = 1.0;
+          }
+        });
+      }
+
+      renderDrawing() {
+        const dCtx = this.drwCtx;
+        dCtx.clearRect(0, 0, this.W, this.H);
+        if (this.drawing.length > 0) {
+          dCtx.lineCap = 'round'; dCtx.lineJoin = 'round'; dCtx.lineWidth = 14; dCtx.strokeStyle = '#1e293b';
+          if (this.drawing.length === 1) {
+            dCtx.beginPath(); dCtx.arc(this.drawing[0].x, this.drawing[0].y, 7, 0, Math.PI*2); dCtx.fillStyle = '#1e293b'; dCtx.fill();
+          } else {
+            dCtx.beginPath(); dCtx.moveTo(this.drawing[0].x, this.drawing[0].y);
+            for (let k = 1; k < this.drawing.length; k++) dCtx.lineTo(this.drawing[k].x, this.drawing[k].y);
+            dCtx.stroke();
+          }
+        }
+      }
+
+      // 運筆方向の矢印を描画するヘルパー
+      drawDirectionArrows(ctx, pts) {
+        if (!pts || pts.length < 5) return;
+        const arrowIndices = [Math.floor(pts.length * 0.35), Math.floor(pts.length * 0.7)];
+        arrowIndices.forEach(idx => {
+          if (idx > 0 && idx < pts.length) {
+            const p1 = pts[idx - 1];
+            const p2 = pts[idx];
+            const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+            const size = 9;
+
+            ctx.save();
+            ctx.translate(p2.x, p2.y);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-size, -size * 0.6);
+            ctx.lineTo(-size * 0.5, 0);
+            ctx.lineTo(-size, size * 0.6);
+            ctx.closePath();
+            ctx.fillStyle = '#0284c7';
+            ctx.fill();
+            ctx.restore();
+          }
+        });
+      }
+
+      getPos(e) {
+        const r = this.drwCanvas.getBoundingClientRect();
+        return { x: e.clientX - r.left, y: e.clientY - r.top };
+      }
+
+      bindEvents() {
+        const c = this.drwCanvas;
+        c.addEventListener('pointerdown', e => {
+          e.preventDefault(); sound.init();
+          this.isDown = true;
+          try { c.setPointerCapture(e.pointerId); } catch(err){}
+          this.drawing = [this.getPos(e)];
+          this.renderDrawing(); // 全体描画ではなく、書き込みレイヤーのみ更新
+        });
+        c.addEventListener('pointermove', e => {
+          if (!this.isDown) return;
+          e.preventDefault();
+          
+          // 差分描画による超低遅延化処理
+          const pos = this.getPos(e);
+          const prev = this.drawing[this.drawing.length - 1];
+          this.drawing.push(pos);
+          
+          const dCtx = this.drwCtx;
+          dCtx.lineCap = 'round'; dCtx.lineJoin = 'round'; dCtx.lineWidth = 14; dCtx.strokeStyle = '#1e293b';
+          dCtx.beginPath();
+          dCtx.moveTo(prev.x, prev.y);
+          dCtx.lineTo(pos.x, pos.y);
+          dCtx.stroke();
+        });
+        c.addEventListener('pointerup', e => {
+          if (!this.isDown) return;
+          this.isDown = false;
+          try { c.releasePointerCapture(e.pointerId); } catch(err){}
+          this.checkStroke();
+        });
+        c.addEventListener('pointercancel', () => { 
+          this.isDown = false; 
+          this.drawing = []; 
+          this.renderDrawing(); 
+        });
+
+        const onClk = (id, fn) => {
+          const el = document.getElementById(id);
+          if (el) el.onclick = fn;
+        };
+
+        onClk('btnDemo', () => this.playDemo());
+        onClk('btnUndo', () => {
+          if (this.sIdx > 0) {
+            this.sIdx--;
+            if (this.userStrokes) this.userStrokes.pop(); // 追加：一画戻す時に軌跡も削除
+            const curEl = document.getElementById('curStroke');
+            if (curEl) curEl.textContent = this.sIdx + 1;
+            this.render();
+            this.showToast('一画戻しました');
+          }
+        });
+        onClk('btnReset', () => {
+          this.sIdx = 0;
+          this.userStrokes = []; // 追加：やり直す時に軌跡をリセット
+          const curEl = document.getElementById('curStroke');
+          if (curEl) curEl.textContent = 1;
+          this.render();
+          this.showToast('最初からやり直します');
+        });
+        onClk('btnSkip', () => {
+          if (this.sIdx < this.strokes.length) {
+            if (!this.userStrokes) this.userStrokes = [];
+            this.userStrokes[this.sIdx] = samplePath(this.strokes[this.sIdx], this.W, this.H); // 追加：スキップ時はお手本を軌跡として記録する
+            this.sIdx++;
+            if (this.sIdx >= this.strokes.length) this.finishChar();
+            else {
+              const curEl = document.getElementById('curStroke');
+              if (curEl) curEl.textContent = this.sIdx + 1;
+              this.render();
+            }
+          }
+        });
+        onClk('btnGrid', (e) => {
+          this.showGrid = !this.showGrid;
+          const gl = document.getElementById('gridLayer');
+          if (gl) gl.style.display = this.showGrid ? 'block' : 'none';
+          e.currentTarget.classList.toggle('active', this.showGrid);
+        });
+        onClk('btnGuide', (e) => {
+          this.showGuide = !this.showGuide;
+          e.currentTarget.classList.toggle('active', this.showGuide);
+          this.render();
+        });
+        onClk('btnPrev', () => {
+          if (this.cIdx > 0) { this.cIdx--; this.renderPills(); this.loadChar(); }
+        });
+        onClk('btnNext', () => {
+          if (this.cIdx < this.chars.length - 1) { this.cIdx++; this.renderPills(); this.loadChar(); }
+        });
+        onClk('btnNextCharStamp', () => {
+          this.cIdx = (this.cIdx + 1) % this.chars.length; this.renderPills(); this.loadChar();
+        });
+        onClk('btnReplayCharStamp', () => this.loadChar());
+
+        onClk('btnSound', (e) => {
+          sound.on = !sound.on;
+          speech.enabled = sound.on;
+          e.currentTarget.textContent = sound.on ? '🔊' : '🔇';
+          this.showToast(sound.on ? '音声・効果音: ON' : '音声・効果音: OFF');
+        });
+
+        onClk('badgeStrict', () => {
+          const lvls = ['easy', 'normal', 'strict'];
+          this.setStrict(lvls[(lvls.indexOf(this.level) + 1) % lvls.length]);
+        });
+
+        const mSel = document.getElementById('modalSelect');
+        const mSet = document.getElementById('modalSettings');
+        const mRec = document.getElementById('modalRecord');
+
+        // 学習記録モーダル
+        onClk('btnOpenRecord', () => {
+          this.renderRecordModal(this.currentRecordTab || 'hiragana');
+          if (mRec) mRec.classList.add('open');
+        });
+        onClk('btnCloseRecord', () => { if (mRec) mRec.classList.remove('open'); });
+
+        document.querySelectorAll('#recordTabBar .tab-btn').forEach(btn => {
+          btn.onclick = () => {
+            this.currentRecordTab = btn.dataset.tab;
+            document.querySelectorAll('#recordTabBar .tab-btn').forEach(b => {
+              b.classList.toggle('active', b.dataset.tab === this.currentRecordTab);
+            });
+            this.renderRecordModal(this.currentRecordTab);
+          };
+        });
+
+        onClk('btnResetHistory', () => {
+          this.history = {};
+          try { localStorage.removeItem('trace_study_history'); } catch(e) {}
+          this.renderRecordModal(this.currentRecordTab);
+          this.showToast('学習記録をリセットしました');
+        });
+
+        // お題選択モーダル
+        onClk('btnOpenSelect', () => {
+          this.selectCategoryTab(this.currentCategoryTab || 'hiragana');
+          if (mSel) mSel.classList.add('open');
+        });
+        onClk('btnCloseSelect', () => { if (mSel) mSel.classList.remove('open'); });
+        onClk('btnSettings', () => { if (mSet) mSet.classList.add('open'); });
+        onClk('btnCloseSettings', () => { if (mSet) mSet.classList.remove('open'); });
+
+        document.querySelectorAll('#tabBar .tab-btn').forEach(btn => {
+          btn.onclick = () => {
+            this.selectCategoryTab(btn.dataset.tab);
+          };
+        });
+
+        const inp = document.getElementById('customInput');
+        onClk('btnApplyCustom', () => {
+          if (inp && inp.value.trim()) {
+            this.setWord(inp.value.trim());
+            if (mSel) mSel.classList.remove('open');
+            inp.value = '';
+          }
+        });
+        if (inp) {
+          inp.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+              const btn = document.getElementById('btnApplyCustom');
+              if (btn) btn.click();
+            }
+          };
+        }
+
+        document.querySelectorAll('.set-strict').forEach(btn => {
+          btn.onclick = () => this.setStrict(btn.dataset.level);
+        });
+
+        const sldTol = document.getElementById('sldTol');
+        if (sldTol) {
+          sldTol.oninput = (e) => {
+            const v = parseInt(e.target.value, 10);
+            this.params[this.level].dev = v;
+            const lbl = document.getElementById('lblTol');
+            if (lbl) lbl.textContent = `${v}px`;
+          };
+        }
+
+        const sldFill = document.getElementById('sldFill');
+        if (sldFill) {
+          sldFill.oninput = (e) => {
+            const v = parseFloat(e.target.value) / 10;
+            this.params[this.level].maxRatio = v;
+            const lbl = document.getElementById('lblFill');
+            if (lbl) lbl.textContent = `${v}倍まで`;
+          };
+        }
+
+        const sldOpac = document.getElementById('sldOpac');
+        if (sldOpac) {
+          sldOpac.oninput = (e) => {
+            const v = parseInt(e.target.value, 10);
+            this.baseOpacity = v / 100;
+            const lbl = document.getElementById('lblOpac');
+            if (lbl) lbl.textContent = `${v}%`;
+            if (!this.hotaru.enabled) {
+              this.hotaru.currentOpacity = this.baseOpacity;
+              this.render();
+            }
+          };
+        }
+
+        const chkHotaru = document.getElementById('chkHotaru');
+        if (chkHotaru) {
+          chkHotaru.onchange = (e) => {
+            this.hotaru.enabled = e.target.checked;
+            if (this.hotaru.enabled) {
+              this.startHotaru();
+            } else {
+              this.stopHotaru();
+            }
+          };
+        }
+
+        const sldHotaruVis = document.getElementById('sldHotaruVis');
+        if (sldHotaruVis) {
+          sldHotaruVis.oninput = (e) => {
+            const v = parseFloat(e.target.value) / 10;
+            this.hotaru.visibleSec = v;
+            const lbl = document.getElementById('lblHotaruVis');
+            if (lbl) lbl.textContent = `${v.toFixed(1)}秒`;
+          };
+        }
+
+        const sldHotaruHid = document.getElementById('sldHotaruHid');
+        if (sldHotaruHid) {
+          sldHotaruHid.oninput = (e) => {
+            const v = parseFloat(e.target.value) / 10;
+            this.hotaru.hiddenSec = v;
+            const lbl = document.getElementById('lblHotaruHid');
+            if (lbl) lbl.textContent = `${v.toFixed(1)}秒`;
+          };
+        }
+      }
+
+      renderRecordModal(tab) {
+        const grid = document.getElementById('recordGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        // 統計集計
+        const historyKeys = Object.keys(this.history);
+        const uniqueCount = historyKeys.length;
+        let totalCount = 0;
+        historyKeys.forEach(k => { totalCount += (this.history[k].count || 0); });
+
+        const uEl = document.getElementById('statUniqueCount');
+        const tEl = document.getElementById('statTotalCount');
+        if (uEl) uEl.textContent = uniqueCount;
+        if (tEl) tEl.textContent = totalCount;
+
+        let charList = [];
+        if (tab === 'custom') {
+          charList = historyKeys.filter(ch => {
+            const isPreset = Object.values(PRESETS).some(list => list.includes(ch));
+            return !isPreset;
+          });
+          if (charList.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:24px; color:#94a3b8; font-weight:700;">自由入力で練習した文字の記録はまだありません。</div>';
+            return;
+          }
+        } else {
+          charList = PRESETS[tab] || [];
+        }
+
+        charList.forEach(ch => {
+          const info = this.history[ch];
+          const isPracticed = !!(info && info.count > 0);
+          const card = document.createElement('div');
+          card.className = `record-card ${isPracticed ? 'practiced' : ''}`;
+          
+          if (isPracticed) {
+            card.innerHTML = `
+              <span class="stamp-badge">済</span>
+              <span>${ch}</span>
+              <span class="count-badge">${info.count}回</span>
+            `;
+          } else {
+            card.innerHTML = `<span>${ch}</span>`;
+          }
+
+          card.onclick = () => {
+            this.setWord(ch);
+            const mRec = document.getElementById('modalRecord');
+            if (mRec) mRec.classList.remove('open');
+          };
+          grid.appendChild(card);
+        });
+      }
+
+      setStrict(lvl) {
+        this.level = lvl;
+        const b = document.getElementById('badgeStrict');
+        if (b) {
+          b.className = `badge ${lvl}`;
+          const names = { easy: '甘口 (やさしい)', normal: 'ふつう (標準)', strict: '辛口 (しっかり)' };
+          b.textContent = `判定: ${names[lvl] || lvl}`;
+        }
+        document.querySelectorAll('.set-strict').forEach(btn => {
+          btn.classList.toggle('btn-primary', btn.dataset.level === lvl);
+        });
+        const p = this.params[lvl];
+        const sldTol = document.getElementById('sldTol');
+        const lblTol = document.getElementById('lblTol');
+        const sldFill = document.getElementById('sldFill');
+        const lblFill = document.getElementById('lblFill');
+        if (sldTol) sldTol.value = p.dev;
+        if (lblTol) lblTol.textContent = `${p.dev}px`;
+        if (sldFill) sldFill.value = Math.round(p.maxRatio * 10);
+        if (lblFill) lblFill.textContent = `${p.maxRatio}倍まで`;
+        const names = { easy: '甘口 (やさしい)', normal: 'ふつう (標準)', strict: '辛口 (しっかり)' };
+        this.showToast(`判定を「${names[lvl]}」に変更`);
+      }
+
+      selectCategoryTab(tab) {
+        this.currentCategoryTab = tab || 'hiragana';
+        document.querySelectorAll('#tabBar .tab-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.tab === this.currentCategoryTab);
+        });
+        this.populateGrid(this.currentCategoryTab);
+      }
+
+      populateGrid(tab) {
+        const g = document.getElementById('charGrid');
+        if (!g) return;
+        g.innerHTML = '';
+        (PRESETS[tab] || []).forEach(ch => {
+          const b = document.createElement('button');
+          b.className = 'char-card'; b.textContent = ch;
+          b.onclick = () => {
+            this.setWord(ch);
+            const mSel = document.getElementById('modalSelect');
+            if (mSel) mSel.classList.remove('open');
+          };
+          g.appendChild(b);
+        });
+      }
+
+      checkStroke() {
+        if (this.sIdx >= this.strokes.length) return;
+        const target = samplePath(this.strokes[this.sIdx], this.W, this.H);
+        const res = evaluateStroke(target, this.drawing, this.params[this.level]);
+
+        if (res.pass) {
+          sound.success();
+          // トースト表示を削除
+          
+          if (!this.userStrokes) this.userStrokes = [];
+          this.userStrokes[this.sIdx] = [...this.drawing]; // 追加：合格した実際の軌跡を保存する
+
+          this.drawing = [];
+          this.sIdx++;
+          if (this.sIdx >= this.strokes.length) this.finishChar();
+          else {
+            const curEl = document.getElementById('curStroke');
+            if (curEl) curEl.textContent = this.sIdx + 1;
+            this.render();
+          }
+        } else {
+          sound.fail();
+          this.showToast(`⚠️ ${res.msg}`, 'error');
+          this.drawing = [];
+          this.render();
+        }
+      }
+
+      finishChar() {
+        sound.complete();
+        const ch = this.chars[this.cIdx];
+        this.saveHistoryRecord(ch);
+        
+        // 完了時は蛍モードを一旦ストップして完全表示にする
+        if (this.hotaruAnimId) {
+            cancelAnimationFrame(this.hotaruAnimId);
+            this.hotaruAnimId = null;
+        }
+        this.hotaru.currentOpacity = this.baseOpacity;
+        this.render();
+        
+        const pillsEl = document.getElementById('wordPills');
+        if (pillsEl) {
+          const pills = pillsEl.children;
+          if (pills[this.cIdx]) pills[this.cIdx].classList.add('completed');
+        }
+
+        setTimeout(() => {
+          speech.speak(`${ch}、よくできました！`, 0.95);
+        }, 350);
+
+        const stamp = this.stampVariations[Math.floor(Math.random() * this.stampVariations.length)];
+        const hanamaru = document.getElementById('hanamaru');
+        if (hanamaru) {
+          const txtEl = document.getElementById('hanamaru-msg');
+          
+          if (txtEl) {
+            txtEl.textContent = stamp.msg;
+            txtEl.style.color = stamp.color;
+          }
+        }
+
+        setTimeout(() => {
+          if (this.hanamaru) this.hanamaru.classList.add('show');
+        }, 200);
+      }
+
+      showToast(msg, type = 'info') {
+        if (!this.toast) return;
+        this.toast.textContent = msg;
+        this.toast.className = `toast show ${type}`;
+        if (this.tTimer) clearTimeout(this.tTimer);
+        this.tTimer = setTimeout(() => {
+          if (this.toast) this.toast.classList.remove('show');
+        }, 2400);
+      }
+
+      playDemo() {
+        this.stopAnim();
+        if (this.sIdx >= this.strokes.length) this.sIdx = 0;
+        const target = samplePath(this.strokes[this.sIdx], this.W, this.H);
+        if (target.length === 0) return;
+
+        let frame = 0, total = 45;
+        const ctx = this.anmCtx;
+
+        const loop = () => {
+          ctx.clearRect(0, 0, this.W, this.H);
+          const p = Math.min(1, frame / total);
+          const idx = Math.floor(p * (target.length - 1));
+
+          ctx.beginPath(); ctx.moveTo(target[0].x, target[0].y);
+          for (let i = 1; i <= idx; i++) ctx.lineTo(target[i].x, target[i].y);
+          ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 14; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+
+          const tip = target[idx];
+          ctx.beginPath(); ctx.arc(tip.x, tip.y, 8, 0, Math.PI*2); ctx.fillStyle = '#f97316'; ctx.fill();
+
+          frame++;
+          if (frame <= total) this.animId = requestAnimationFrame(loop);
+          else setTimeout(() => ctx.clearRect(0, 0, this.W, this.H), 500);
+        };
+        this.animId = requestAnimationFrame(loop);
+      }
+
+      stopAnim() {
+        if (this.animId) cancelAnimationFrame(this.animId);
+        this.anmCtx.clearRect(0, 0, this.W, this.H);
+      }
+    }
+
+    function init() {
+      if (!window.app) window.app = new App();
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+    window.addEventListener('load', init);
+  })();
+  </script>
+</body>
+</html>
