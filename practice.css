@@ -1,0 +1,119 @@
+/* Child-facing practice and task selection; precise controls remain in adult settings. */
+.actions {flex-wrap:wrap;justify-content:flex-end;}
+.actions>.btn {min-height:44px;font-size:15px;}
+.tool-btn {font-size:15px;line-height:1.45;min-height:64px;white-space:normal;}
+.tool-card {min-width:0;}
+.grid-symbol {display:block;width:23px;height:23px;border:2px solid currentColor;background:linear-gradient(transparent calc(50% - 1px),currentColor 50%,transparent calc(50% + 1px)),linear-gradient(90deg,transparent calc(50% - 1px),currentColor 50%,transparent calc(50% + 1px));}
+.storage-area {font-size:13px;min-height:30px;color:#536d56;}
+.grownup-records {display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid #cfdbc6;border-radius:12px;font-size:14px;line-height:1.6;}
+.grownup-records small {color:#63765a;}
+#badgeStrict {display:table;margin:8px 0;}
+#modalSelect {padding:12px;}
+#modalSelect>.modal {max-width:860px;max-height:94dvh;border-radius:22px;border-color:#d2ddc8;background:#fffdf5;}
+#modalSelect .modal-head {background:#f2eedb;gap:12px;padding:16px 20px;font-size:20px;}
+#modalSelect .modal-head .btn {font-size:16px;min-height:48px;}
+#modalSelect .modal-body {padding:20px;gap:18px;touch-action:pan-y;overscroll-behavior:contain;}
+#modalSelect h3 {font-size:20px;color:#3c5e45;}
+#modalSelect p {font-size:15px;line-height:1.7;color:#5e7459;}
+#modalSelect .btn {font-size:15px;min-height:46px;white-space:normal;}
+#modalSelect input {font-size:17px;min-height:48px;user-select:text;-webkit-user-select:text;-webkit-touch-callout:default;touch-action:manipulation;width:100%;min-width:0;}
+.saved-lessons-section {display:flex;flex-direction:column;gap:12px;}
+.lesson-section-head {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.lesson-search {display:flex;flex-direction:column;gap:6px;font-size:14px;color:#526b4e;}
+.saved-lesson-list {display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;max-height:320px;overflow-y:auto;touch-action:pan-y;padding:3px;}
+.saved-lesson {min-width:0;display:flex;flex-direction:column;padding:12px;border:1px solid #d2dec7;border-radius:16px;background:#f7f9ec;gap:10px;}
+.saved-lesson.is-recent {border-color:#6d9065;background:#eef5df;}
+.saved-lesson-choice {border:0;background:transparent;font:inherit;text-align:left;cursor:pointer;color:#35543d;display:flex;flex-direction:column;gap:7px;min-height:66px;padding:4px;overflow-wrap:anywhere;}
+.saved-lesson-choice strong {font-size:22px;line-height:1.4;}
+.saved-lesson-choice span {font-size:14px;color:#607557;}
+.lesson-tools {display:flex;gap:8px;flex-wrap:wrap;}
+.lesson-tools .btn {flex:1;background:#fffdf6;}
+.archived-lessons {padding-top:6px;}
+.archived-lessons summary {cursor:pointer;font-size:15px;color:#617655;min-height:38px;}
+.archived-lessons .saved-lesson {background:#f2f0e7;}
+.lesson-editor {display:flex;flex-direction:column;gap:14px;border:1px solid #ded9c2;border-radius:18px;background:#faf4e1;padding:18px;}
+.lesson-editor label {display:flex;flex-direction:column;gap:8px;font-size:16px;}
+#modalSelect .lesson-help {font-size:14px;}
+.lesson-form-actions {display:flex;gap:10px;flex-wrap:wrap;}
+.lesson-status {padding:8px 12px;border-radius:12px;background:#edf4dc;}
+.lesson-status:empty {display:none;}
+.lesson-more {justify-self:center;grid-column:1/-1;}
+.lesson-empty {grid-column:1/-1;}
+#modalSelect .tab-bar {touch-action:pan-x;flex-shrink:0;}
+#modalSelect .tab-btn {min-height:46px;font-size:15px;}
+#modalSelect .char-grid {max-height:300px;}
+#modalSelect .char-card {min-height:48px;}
+#modalSelect button:focus-visible,#modalSelect input:focus-visible {outline:3px solid #41654e;outline-offset:2px;}
+@media(max-width:700px){
+ .actions>.btn {font-size:14px;padding:9px 11px;}
+ .sidebar .tool-btn {font-size:14px;min-width:0;min-height:64px;padding:8px 4px;}
+ #modalSelect {padding:8px;}
+ #modalSelect .modal-body {padding:16px;}
+ #modalSelect .modal-head {font-size:18px;padding:12px 16px;}
+ .lesson-editor {padding:14px;}
+ .saved-lesson-list {grid-template-columns:1fr;max-height:300px;}
+ .lesson-form-actions .btn {flex:1;}
+}
+
+/* The primary learning controls must never shrink below their visible content. */
+#modalSelect .modal-body>*,#modalSettings .modal-body>* {flex-shrink:0;}
+#modalSelect .preset-panel {display:flex;flex-direction:column;gap:12px;min-height:260px;}
+#modalSelect #charGrid {flex:none;min-height:200px;max-height:320px;overflow-y:auto;}
+#modalSelect .preset-heading {margin:0;}
+#hotaruSettings {border:2px solid #d9cb77;background:#fff8d9!important;margin-top:0!important;}
+.lesson-queue-section {padding:14px;border:1px solid #cbdac4;border-radius:16px;background:#eef5e5;display:flex;flex-direction:column;gap:10px;}
+#lessonQueueList {margin:0;padding-left:28px;max-height:200px;overflow-y:auto;}
+#lessonQueueList li {padding:4px;}
+#lessonQueueList li>span {margin-right:14px;font-size:18px;}
+/* Selection is a keyboard + always-visible composer, with one explicit start action. */
+#modalSelect [hidden] {display:none!important;}
+#modalSelect>.modal {max-width:1080px;height:min(820px,94dvh);display:grid;grid-template-columns:minmax(0,1.6fr) minmax(310px,1fr);grid-template-rows:auto auto minmax(0,1fr);}
+#modalSelect .modal-head {grid-column:1/-1;grid-row:1;}
+.selection-source-tabs {grid-column:1;grid-row:2;display:flex;gap:8px;padding:14px 18px 0;}
+#modalSelect .selection-source-tabs .btn {flex:1;border-radius:14px 14px 5px 5px;}
+#modalSelect [aria-pressed="true"] {background:#476e53;color:#fffdf5;border-color:#476e53;}
+#modalSelect .modal-body {grid-column:1;grid-row:3;min-height:0;padding:16px 18px;gap:16px;}
+#modalSelect .preset-panel {min-height:0;gap:12px;}
+#modalSelect .keyboard-help {font-size:14px;line-height:1.6;margin:0;}
+#modalSelect #charGrid {max-height:none;height:clamp(220px,44dvh,500px);min-height:180px;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));align-content:start;padding:4px;}
+#modalSelect .char-card {min-height:48px;font-size:24px;border-radius:12px;background:#fffef7;border-color:#cbd9c5;box-shadow:0 3px 0 #e3e7d7;touch-action:manipulation;}
+#modalSelect .char-card:active {background:#e6f1d6;box-shadow:none;}
+#modalSelect .tab-bar {gap:5px;}
+#modalSelect .tab-btn {padding:8px;font-size:14px;}
+#modalSelect .saved-lesson-list {max-height:none;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));}
+#modalSelect .saved-lesson-choice {min-height:64px;}
+.selection-composer {grid-column:2;grid-row:2/4;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;display:flex;flex-direction:column;gap:12px;padding:18px;border-left:1px solid #dddac2;background:#f6f1dd;}
+.practice-mode-tabs {display:flex;gap:6px;}
+#modalSelect .practice-mode-tabs .btn {flex:1;padding:8px 6px;font-size:14px;}
+.draft-heading {display:flex;justify-content:space-between;align-items:center;gap:8px;color:#3b5c43;font-size:14px;}
+#draftCount {font-size:12px;white-space:nowrap;}
+.lesson-draft-preview {display:flex;gap:6px;flex-wrap:wrap;align-content:flex-start;min-height:82px;max-height:180px;overflow-y:auto;background:#fffef8;border:2px solid #bdcfb2;border-radius:16px;padding:10px;}
+.draft-character {display:inline-flex;align-items:center;justify-content:center;width:42px;height:48px;font-size:28px;background:#f2f6e9;border-radius:9px;color:#304f3b;}
+.draft-placeholder {font-size:15px;color:#7b826a;align-self:center;}
+.draft-tools {display:flex;flex-wrap:wrap;gap:8px;}
+#modalSelect .draft-tools .btn {font-size:14px;padding:8px 10px;flex:1;}
+#modalSelect .draft-tools #btnQueueDraft {flex-basis:100%;background:#e2ecd5;border-color:#98b58b;}
+.manual-entry {font-size:14px;}
+#modalSelect summary {cursor:pointer;min-height:36px;line-height:1.7;padding:4px;}
+.manual-entry label,.lesson-registration label {display:flex;flex-direction:column;gap:6px;}
+#modalSelect .selection-start {min-height:54px;font-size:18px;width:100%;margin-top:auto;}
+#modalSelect .selection-composer .lesson-status {font-size:14px;padding:8px;margin:0;line-height:1.5;}
+#modalSelect .selection-composer>* {flex-shrink:0;}
+.lesson-registration {border-top:1px solid #d9dec9;padding-top:8px;color:#5b7055;}
+.lesson-registration h3 {margin:8px 0;}
+.lesson-management summary {font-size:13px;color:#65775e;}
+#modalSelect button:disabled {opacity:.45;cursor:default;box-shadow:none;}
+#lessonQueueList li {padding:6px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+#lessonQueueList li>span {flex:1;min-width:100px;margin:0;}
+#modalSelect #lessonQueueList .btn {min-height:38px;font-size:12px;padding:4px 7px;}
+@media(max-width:700px){
+ #modalSelect>.modal {display:flex;height:94dvh;max-height:94dvh;}
+ #modalSelect .selection-source-tabs {padding:8px 12px 0;flex:none;}
+ #modalSelect .modal-head {padding:10px 14px;}
+ #modalSelect .modal-body {flex:1;min-height:150px;padding:12px;}
+ #modalSelect #charGrid {height:clamp(160px,30dvh,300px);min-height:140px;grid-template-columns:repeat(auto-fill,minmax(43px,1fr));}
+ #modalSelect .selection-composer {flex:none;max-height:48dvh;padding:12px;gap:8px;border-left:0;border-top:2px solid #d5d8bc;}
+ .lesson-draft-preview {min-height:60px;max-height:108px;padding:7px;}
+ .draft-character {width:34px;height:40px;font-size:24px;}
+ #modalSelect .selection-start {min-height:48px;font-size:16px;}
+}

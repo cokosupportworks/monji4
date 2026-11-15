@@ -1,0 +1,149 @@
+{
+  "snapshot": "2026-11-15",
+  "entries": [
+    {
+      "char": "ひ",
+      "file": "03072.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03072.svg",
+      "sha256": "971ad9d36adae9db86899cddeec4295cea33f9993e58d561e5532fe31f4d608c",
+      "strokes": 1,
+      "pathCharacters": 228
+    },
+    {
+      "char": "ぬ",
+      "file": "0306c.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/0306c.svg",
+      "sha256": "6156f4b03d21fd26ba1d9b5c07135b5e5c1badb0f58714054e3e5928997b780e",
+      "strokes": 2,
+      "pathCharacters": 360
+    },
+    {
+      "char": "め",
+      "file": "03081.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03081.svg",
+      "sha256": "c4d6568ee1f0f7429a2c35a85ab39d392f3d87f87f27158446e4859ad1d60008",
+      "strokes": 2,
+      "pathCharacters": 276
+    },
+    {
+      "char": "ね",
+      "file": "0306d.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/0306d.svg",
+      "sha256": "9e02a0fe50febb753c7e9c0880f07c9f61384c0057fb2dc814c96cb760379a6a",
+      "strokes": 2,
+      "pathCharacters": 418
+    },
+    {
+      "char": "あ",
+      "file": "03042.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03042.svg",
+      "sha256": "3553cd24cba506dffe12e1214f231fc129c2535f719c1bdc86a9fb651aa9ec9b",
+      "strokes": 3,
+      "pathCharacters": 410
+    },
+    {
+      "char": "む",
+      "file": "03080.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03080.svg",
+      "sha256": "d8dbf8e3e4b0e6483f23f1686a3f97c06fa751d04cc5c01e53e377ca82540d96",
+      "strokes": 3,
+      "pathCharacters": 436
+    },
+    {
+      "char": "の",
+      "file": "0306e.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/0306e.svg",
+      "sha256": "85a190a35b6b8e4f79de6b313b468de8cdb8d1e3e13d404838f462f7888ad2c0",
+      "strokes": 1,
+      "pathCharacters": 169
+    },
+    {
+      "char": "ゆ",
+      "file": "03086.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03086.svg",
+      "sha256": "ef191769f548cf2027254d4b9d8875de2f577395f3404dad87fee1da0022c6f8",
+      "strokes": 2,
+      "pathCharacters": 288
+    },
+    {
+      "char": "る",
+      "file": "0308b.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/0308b.svg",
+      "sha256": "3b0208d49dc36f45b9666c46205795087730dfa68a7af6e03d724e4e368eebad",
+      "strokes": 1,
+      "pathCharacters": 246
+    },
+    {
+      "char": "ろ",
+      "file": "0308d.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/0308d.svg",
+      "sha256": "64a5727daa97a371852e28096ad5e07125a4a00e4459ef43a989563f15bc7736",
+      "strokes": 1,
+      "pathCharacters": 218
+    },
+    {
+      "char": "を",
+      "file": "03092.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03092.svg",
+      "sha256": "fe468e6b465a4531276bf16ef579f5921f3b31d8dc74f145c797a1bc37521d1b",
+      "strokes": 3,
+      "pathCharacters": 366
+    },
+    {
+      "char": "ん",
+      "file": "03093.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03093.svg",
+      "sha256": "f38abbba5be2567e8cb36c0417727f1fd368ac3c90764471c09856b0057a66c3",
+      "strokes": 1,
+      "pathCharacters": 153
+    },
+    {
+      "char": "シ",
+      "file": "030b7.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/030b7.svg",
+      "sha256": "777a0eef4d858337a43e30a78ee09f265080cb3f33975b6e23148849027b1769",
+      "strokes": 3,
+      "pathCharacters": 155
+    },
+    {
+      "char": "ソ",
+      "file": "030bd.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/030bd.svg",
+      "sha256": "f225b489929dc7483b07b7cc8f6138c02d41afda88f693ece9119b8ccb84c13e",
+      "strokes": 2,
+      "pathCharacters": 111
+    },
+    {
+      "char": "ツ",
+      "file": "030c4.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/030c4.svg",
+      "sha256": "161c7a7be52dc62a9db1d99002a827e4c71a2ff9272c969ecb60995c1044a9fc",
+      "strokes": 3,
+      "pathCharacters": 147
+    },
+    {
+      "char": "ヌ",
+      "file": "030cc.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/030cc.svg",
+      "sha256": "15cb49d3112264fa744549e51afa45537f9782ab4c980adba5593e544de4ecf0",
+      "strokes": 2,
+      "pathCharacters": 176
+    },
+    {
+      "char": "メ",
+      "file": "030e1.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/030e1.svg",
+      "sha256": "c2e0dd96e95b558a5c6004163c43f75023ea07f8b6f6263d068bb30ef860f166",
+      "strokes": 2,
+      "pathCharacters": 117
+    },
+    {
+      "char": "鬱",
+      "file": "09b31.svg",
+      "source": "https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/09b31.svg",
+      "sha256": "76548e8abfe4e43cbcd4b1fc38c463df362639dcd247577231f3feda3964c831",
+      "strokes": 29,
+      "pathCharacters": 2115
+    }
+  ]
+}

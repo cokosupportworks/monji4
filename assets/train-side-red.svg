@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560">
+ <title>横から見た文字の車両</title>
+ <g stroke="#385643" stroke-width="5" stroke-linejoin="round">
+  <path d="M0 354h18m444 0h18" fill="none" stroke-width="12"/>
+  <rect x="18" y="32" width="444" height="454" rx="32" fill="#f1dfe1"/>
+  <path d="M18 118V64q0-32 32-32h380q32 0 32 32v54" fill="#be6067"/>
+  <rect x="30" y="436" width="420" height="50" rx="13" fill="#be6067"/>
+  <rect x="40" y="80" width="400" height="400" rx="22" fill="#fffef8"/>
+  <path d="M50 48h380" stroke="#b6c8a5" stroke-width="7"/>
+  <path d="M65 486v12h350v-12" fill="#54625a"/>
+  <g fill="#495750"><circle cx="105" cy="511" r="30"/><circle cx="375" cy="511" r="30"/></g>
+  <g fill="#bdc6b5" stroke-width="4"><circle cx="105" cy="511" r="12"/><circle cx="375" cy="511" r="12"/></g>
+  <path d="M145 510h190" fill="none" stroke="#7b897b" stroke-width="10"/>
+ </g>
+</svg>

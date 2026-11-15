@@ -1,0 +1,29 @@
+/* One decoded transparent sheet, selected only on semantic events; never on pen movement. */
+.settings-gear {width:48px;min-width:48px;display:inline-flex;align-items:center;justify-content:center;padding:8px!important;}
+.settings-gear img {display:block;pointer-events:none;}
+.settings-gear:focus-visible {outline:3px solid #41654e;outline-offset:3px;}
+.hotaruko-sprite {background-image:url('assets/hotaruko/poses.png');background-repeat:no-repeat;background-size:400% 100%;background-position:66.6667% 0;aspect-ratio:443.5/887;}
+.coach {display:flex;align-items:center;gap:12px;min-height:102px;padding:6px 16px 6px 8px;border:1px solid #d8dfbc;background:linear-gradient(110deg,#faf6d9,#edf2df);position:relative;}
+.coach-character {width:48px;height:96px;flex:none;pointer-events:none;}
+.coach-copy {flex:1;min-width:0;}
+.coach .coach-copy span {font-size:12px;line-height:1.5;margin-bottom:5px;}
+.coach .coach-copy p {font-size:15px;line-height:1.7;margin:0;}
+.coach[data-pose="request"] .coach-character {background-position:33.3333% 0;}
+.coach[data-pose="praise"] .coach-character {background-position:100% 0;}
+.driver-overview {flex:none;text-align:center;width:74px;pointer-events:none;}
+.driver-overview[hidden] {display:none;}
+.driver-overview small {font-size:10px;color:#5b6e50;white-space:nowrap;}
+.locomotive {position:relative;width:64px;height:75px;margin:0 auto;}
+.locomotive>img {display:block;width:100%;height:100%;}
+.cab-driver {display:none;position:absolute;overflow:hidden;pointer-events:none;}
+.driver-overview[data-direction="horizontal"] .cab-driver {display:block;left:37%;top:20%;width:44%;height:35%;}
+.cab-driver .hotaruko-sprite {width:100%;background-position:66.6667% 0;}
+.journey-car>.cab-driver {display:none;}
+.journey .locomotive-car>.journey-preview,.journey .locomotive-car>.journey-ink,.journey .locomotive-car>.cell-label {display:none;}
+.journey[data-direction="horizontal"] .locomotive-car>.cab-driver {display:block;left:34.4%;top:8%;width:52.3%;height:49%;z-index:1;}
+@media(max-width:700px){.coach{gap:8px;padding-right:10px;min-height:94px;}.coach-character{width:44px;height:88px;}.coach .coach-copy p{font-size:14px;}.driver-overview{width:60px;}.locomotive{width:52px;height:61px;}}
+
+.hotaruko-bust {background-image:url('assets/hotaruko/poses.png');background-repeat:no-repeat;background-size:400% auto;background-position:66.6667% top;overflow:hidden;border-radius:20px;}
+#modalRecord .album-title-firefly {height:78px;}
+#modalRecord .album-firefly {height:100px;}
+#modalRecord .album-title-firefly {display:block;}

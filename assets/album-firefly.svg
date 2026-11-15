@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
+ <title>アルバムにとまるほたる</title>
+ <circle cx="80" cy="87" r="62" fill="#f5e7a8" opacity=".55"/>
+ <path d="M48 76C13 32 40 19 70 66M92 66c33-47 63-26 22 15" fill="#e7f0e5" stroke="#638579" stroke-width="3.5"/>
+ <path d="M53 77c-25 6-30 38-11 39 18 0 25-27 27-36m24-1c11 37 36 45 41 27 4-14-18-27-27-29" fill="#edf4e7" stroke="#638579" stroke-width="3.5"/>
+ <ellipse cx="81" cy="98" rx="22" ry="31" fill="#f4cf63" stroke="#446458" stroke-width="4"/>
+ <path d="M61 82c1-26 40-27 41 0v15H61Z" fill="#446458"/>
+ <circle cx="81" cy="60" r="19" fill="#446458"/>
+ <path d="M71 45c-9-17-16-12-13-6m33 7c10-17 18-12 16-5" fill="none" stroke="#446458" stroke-width="3.5" stroke-linecap="round"/>
+ <circle cx="74" cy="59" r="2.5" fill="#fffdf4"/><circle cx="88" cy="59" r="2.5" fill="#fffdf4"/>
+ <path d="M77 67q4 4 8 0" fill="none" stroke="#fffdf4" stroke-width="2" stroke-linecap="round"/>
+ <path d="m33 132 4-10 4 10 10 4-10 4-4 10-4-10-10-4Zm91-103 3-7 3 7 7 3-7 3-3 7-3-7-7-3Z" fill="#d7af4c"/>
+</svg>

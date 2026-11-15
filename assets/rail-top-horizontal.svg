@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 200"><title>真上から見た横の線路</title><g transform="translate(0 200) rotate(-90)">
+ <title>真上から見た縦の線路</title>
+ <g fill="#bcae8b"><rect x="8" y="12" width="184" height="13" rx="3"/><rect x="8" y="52" width="184" height="13" rx="3"/><rect x="8" y="92" width="184" height="13" rx="3"/><rect x="8" y="132" width="184" height="13" rx="3"/></g>
+ <path d="M42 0v160M158 0v160" stroke="#718078" stroke-width="8"/>
+ <path d="M40 0v160M156 0v160" stroke="#d7ddd1" stroke-width="2"/>
+</g></svg>

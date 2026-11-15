@@ -1,0 +1,91 @@
+main {display:grid;grid-template-columns:100px minmax(0,1fr) 100px;align-items:stretch;gap:12px;}
+.center-container {max-width:none;min-height:0;align-self:stretch;justify-content:flex-start;}
+.journey {--car-size:300px;position:relative;isolation:isolate;flex:1;min-height:250px;width:100%;overflow:hidden;background:#f1f2e4;border-radius:24px;}
+.journey-track {display:flex;flex-direction:row;gap:calc(var(--car-size)*.5);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);will-change:transform;}
+.journey[data-direction="vertical"] .journey-track {flex-direction:column;}
+.journey-car {width:var(--car-size);height:var(--car-size);position:relative;flex:none;}
+.journey-art {position:absolute;left:-10%;top:-20%;width:120%;height:140%;pointer-events:none;user-select:none;}
+.journey .stage {width:var(--car-size);height:var(--car-size);position:relative;aspect-ratio:1;border:0;border-radius:18px;box-shadow:none;background:#fffef8;}
+.journey-preview {position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:#fffef8;border-radius:18px;}
+.journey-ink {position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent;border-radius:18px;z-index:2;}
+.journey-car {direction:ltr;touch-action:none;}
+.journey-car .stage {z-index:3;}
+.current-car>.journey-preview,.current-car>.journey-ink {visibility:hidden!important;}
+.cell-label {display:none;}
+.cell-rail {display:none;}
+.journey-size-note {position:absolute;bottom:8px;left:12px;right:12px;z-index:9;background:#fffef8;color:#53634c;border-radius:10px;padding:5px 8px;font-size:12px;}
+.journey-size-note:empty {display:none;}
+.journey-rail {position:absolute;left:0;right:0;top:calc(50% + var(--car-size)*.66);height:36px;background-repeat:repeat-x;background-size:160px 36px;}
+.journey[data-direction="vertical"] .journey-rail {left:50%;right:auto;top:0;bottom:0;width:calc(var(--car-size)*.95);height:auto;transform:translateX(-50%);background-repeat:repeat-y;background-size:100% auto;}
+.station-marker {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(var(--car-size) + 8px);height:calc(var(--car-size) + 8px);border:3px solid #597653;border-radius:23px;z-index:8;pointer-events:none;}
+.journey-progress {position:absolute;left:12px;top:10px;z-index:9;padding:5px 10px;background:#fffef8;border-radius:20px;font-size:.8rem;color:#3d5846;}
+.journey.without-train .journey-art,.journey.without-train .journey-rail {display:none;}
+.journey.without-train .cell-rail {display:none!important;}
+.journey.without-train .journey-car {border-radius:18px;box-shadow:0 0 0 1px #ced8c6;}
+.journey.models-hidden .journey-car:not(.completed-car):not(.current-car) .journey-preview {visibility:hidden;}
+.journey.moving .current-car .stage {pointer-events:none;}
+.journey[data-mode="fixed"] .journey-track {display:grid;will-change:auto;}
+.journey[data-mode="fixed"][data-direction="vertical"] .journey-track {grid-auto-flow:column;direction:rtl;}
+.journey[data-mode="fixed"] .station-marker,.journey[data-mode="fixed"]>.journey-rail {display:none;}
+.journey[data-mode="fixed"] .current-car .stage {outline:3px solid #597653;outline-offset:2px;}
+.journey[data-mode="fixed"] .cell-label {display:block;position:absolute;left:4px;top:-28px;z-index:5;min-width:24px;height:22px;padding:2px 5px;border:1px solid #a7b49e;border-radius:9px;background:#fffef8;color:#3d5846;font:inherit;font-size:12px;cursor:pointer;}
+.journey[data-mode="fixed"] .cell-label[aria-pressed="true"] {background:#45684d;color:#fffef8;}
+.journey[data-mode="fixed"] .cell-rail {display:block;position:absolute;left:-25%;right:-25%;top:calc(var(--car-size)*1.16);height:18px;background-repeat:repeat-x;background-size:80px 18px;}
+.journey[data-mode="fixed"][data-direction="vertical"] .cell-rail {top:-25%;bottom:-25%;left:2.5%;right:auto;width:95%;height:auto;transform:none;background-repeat:repeat-y;background-size:100% auto;}
+.journey[data-mode="fixed"] .counter {top:4px;left:4px;padding:2px 5px;font-size:11px;}
+.journey[data-mode="fixed"] .counter span {font-size:12px;}
+.journey[data-mode="fixed"].small-cells .counter {display:none;}
+.journey[data-mode="fixed"].small-cells .cell-label {display:none;}
+.journey[data-mode="fixed"] .grid-inner {inset:4px;border-radius:5px;border-width:1px;}
+.journey[data-mode="fixed"] .grid-h {left:4px;right:4px;height:1px;}
+.journey[data-mode="fixed"] .grid-v {top:4px;bottom:4px;width:1px;}
+.journey[data-mode="fixed"] .stage,.journey[data-mode="fixed"] .journey-preview,.journey[data-mode="fixed"] .journey-ink {border-radius:calc(var(--car-size)*.045);}
+.hanamaru-container {flex:none;min-height:54px;height:auto;flex-wrap:wrap;padding:6px 0;margin-top:6px;}
+.coach {flex:none;padding:8px 14px;margin-top:8px;}
+.sidebar {width:auto;}
+body {min-height:620px;}
+@media(max-width:700px){
+ body {height:auto;min-height:100dvh;overflow-y:auto;touch-action:pan-y;}
+ main {grid-template-columns:1fr;padding:8px;gap:8px;flex:none;}
+ main>.sidebar {flex-direction:row;}
+ main>.sidebar:last-child>div {flex-direction:row!important;width:100%;}
+ .tool-card {flex-direction:row;flex:1;justify-content:space-around;}
+ .tool-btn {width:auto;flex:1;}
+ .center-container {height:min(78dvh,740px);max-width:none;}
+ .journey {min-height:220px;}
+ .actions {flex-wrap:wrap;}
+}
+@media(prefers-reduced-motion:reduce){.journey-track{will-change:auto;}}
+@media(max-height:650px) and (min-width:701px){
+ body {height:auto;min-height:100dvh;overflow-y:auto;touch-action:pan-y;}
+ main {min-height:480px;flex:none;}
+ .center-container {min-height:480px;}
+ .journey {min-height:340px;}
+}
+
+/* Keep the stationary writing position concealed until the train arrives. */
+.journey.arrival-pending .journey-track {visibility:hidden!important;}
+.journey.arrival-pending .station-marker,.journey.train-cinematic .station-marker {visibility:hidden;}
+.journey.train-cinematic .journey-track {pointer-events:none;}
+
+.journey.word-finished>.journey-track,.journey.word-finished>.journey-rail,.journey.word-finished>.station-marker,.journey.word-finished>.journey-progress,.journey.word-finished>.journey-size-note {visibility:hidden!important;pointer-events:none;}
+.journey-finale {position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;gap:26px;overflow-y:auto;background:#f1f2e4;}
+.journey-finale h2 {font-size:clamp(18px,3vw,28px);color:#35583f;margin:0;}
+.whole-train {display:flex;align-items:center;justify-content:center;gap:0;width:100%;max-width:1100px;flex:none;}
+.whole-train-car {position:relative;flex:0 1 calc(100% / var(--train-count));width:calc(100% / var(--train-count));max-width:180px;min-width:0;aspect-ratio:480/560;}
+.whole-train-car>img {width:100%;height:100%;display:block;}
+.whole-train-car>canvas {position:absolute;left:8.333%;top:14.286%;width:83.334%;height:71.428%;pointer-events:none;}
+.whole-train .cab-driver {display:block;left:37%;top:20%;width:44%;height:35%;}
+.finale-actions {display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.finale-actions>.btn {min-height:48px;font-size:18px;padding:12px 20px;}
+
+#hanamaru {display:none!important;}
+.journey.journey-preparing>.journey-track,.journey.journey-preparing>.journey-rail,.journey.journey-preparing>.station-marker,.journey.journey-preparing>.journey-progress {visibility:hidden!important;}
+.orientation-gate {position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;background:#fff9e8;color:#3d5842;font-size:clamp(18px,3vw,26px);font-weight:700;line-height:1.9;}
+.orientation-gate[hidden] {display:none;}
+.journey.orientation-blocked>.journey-track,.journey.orientation-blocked>.journey-rail,.journey.orientation-blocked>.station-marker {visibility:hidden!important;pointer-events:none;}
+.orientation-hint {padding:12px;border:2px solid #d7bf6a;border-radius:12px;background:#fff6ce;color:#5d552b;line-height:1.7;}
+.whole-train {width:auto;max-width:100%;}
+.whole-train-car {flex:none;width:var(--whole-car-size);max-width:none;aspect-ratio:480/560;}
+.journey[data-direction="vertical"] .whole-train {flex-direction:column;}
+.journey[data-direction="vertical"] .journey-finale {gap:14px;}

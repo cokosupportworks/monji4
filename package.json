@@ -1,0 +1,11 @@
+{
+  "name": "monjibotaru4-prototype",
+  "version": "0.14.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/regression.cjs && node tests/fixed.cjs && node tests/journey.cjs && node tests/performance.cjs && node tests/word-archive.cjs && node tests/album-design.cjs && node tests/assisted-history.cjs && node tests/child-practice.cjs && node tests/hotaruko.cjs && node tests/train-scenes.cjs && node tests/revision11.cjs && node tests/selection-flow.cjs && node tests/orientation-flow.cjs && node tests/diagnostics.cjs && node tests/real-strokes.cjs"
+  },
+  "devDependencies": {
+    "svg-path-properties": "2.2.0"
+  }
+}

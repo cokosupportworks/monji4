@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 36">
+ <title>横から見た横の線路</title>
+ <g fill="#bcae8b"><rect x="12" y="18" width="24" height="12" rx="2"/><rect x="66" y="18" width="24" height="12" rx="2"/><rect x="120" y="18" width="24" height="12" rx="2"/></g>
+ <path d="M0 14h160" stroke="#718078" stroke-width="8"/><path d="M0 11h160" stroke="#d7ddd1" stroke-width="3"/>
+</svg>
