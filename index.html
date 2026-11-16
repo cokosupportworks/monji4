@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="practice.css">
   <link rel="stylesheet" href="hotaruko.css">
   <link rel="stylesheet" href="responsive.css">
+  <link rel="stylesheet" href="tools.css">
 </head>
 <body class="no-task">
 
@@ -33,25 +34,13 @@
     <div class="actions">
       <button class="btn btn-record" id="btnOpenRecord">さくひんちょう</button>
       <button class="btn btn-primary" id="btnOpenSelect">もじを えらぶ</button>
-      <button class="btn" id="btnSound" aria-label="おとを けす" aria-pressed="true">♪ おと</button>
+      <button class="btn" id="btnTools" aria-label="れんしゅうの どうぐを ひらく" aria-haspopup="dialog" aria-expanded="false" aria-controls="modalTools" disabled>どうぐ</button>
       <button class="btn settings-gear" id="btnSettings" aria-label="おとなの せってい" title="おとなの せってい"><img src="assets/gear.svg" alt="" width="28" height="28"></button>
     </div>
     <div class="word-overview"><span id="wordProgress" class="word-progress" role="status"></span><div class="word-pills" id="wordPills" aria-label="おだいの ますと、かいた もじ"></div></div>
   </header>
 
   <main>
-    <aside class="sidebar">
-      <div class="tool-card">
-        <button class="tool-btn" id="btnDemo"><span>▶️</span>おてほん</button>
-        <button class="tool-btn" id="btnUndo"><span>↩️</span>ひとつ もどす</button>
-        <button class="tool-btn" id="btnReset"><span>🔄</span>はじめから</button>
-      </div>
-      <div class="tool-card">
-        <button class="tool-btn active" id="btnGrid"><span class="grid-symbol" aria-hidden="true"></span>ますめ</button>
-        <button class="tool-btn active" id="btnGuide"><span>📍</span>はじめの しるし</button>
-      </div>
-    </aside>
-
     <div class="center-container">
       <section id="welcomeMessage" class="welcome-message"><p>れんしゅうしたい もじや ことばを えらんでください</p><button class="btn btn-primary" id="btnWelcomeSelect">もじを えらぶ</button></section>
       <section class="stage" id="stage">
@@ -80,20 +69,15 @@
       <div id="hanamaru" hidden aria-hidden="true"></div>
     </div>
 
-    <aside class="sidebar" style="justify-content: center;">
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div class="tool-card">
-          <button class="tool-btn" id="btnPrev"><span>⬅️</span>まえの もじ</button>
-          <button class="tool-btn" id="btnNext"><span>➡️</span>つぎの もじ</button>
-        </div>
-        <div class="tool-card">
-          <button class="tool-btn" id="btnSkip"><span>⏩</span>おてつだい</button>
-        </div>
-      </div>
-    </aside>
   </main>
 
   <footer class="storage-area"><span id="storageStatus" role="status">じぶんの ペースで かいてみよう</span></footer>
+  <div class="modal-overlay practice-tools" id="modalTools" role="dialog" aria-modal="true" aria-labelledby="toolsTitle">
+    <div class="modal"><div class="modal-head"><h2 id="toolsTitle">れんしゅうの どうぐ</h2><button class="btn" id="btnCloseTools">とじる</button></div>
+      <div class="practice-tool-grid"><button class="tool-btn" id="btnDemo"><span>▶️</span>おてほん</button><button class="tool-btn" id="btnUndo"><span>↩️</span>ひとつ もどす</button><button class="tool-btn" id="btnReset"><span>🔄</span>はじめから</button><button class="tool-btn active" id="btnGrid"><span class="grid-symbol" aria-hidden="true"></span>ますめ</button><button class="tool-btn active" id="btnGuide"><span>📍</span>はじめの しるし</button><button class="tool-btn" id="btnPrev"><span>⬅️</span>まえの もじ</button><button class="tool-btn" id="btnNext"><span>➡️</span>つぎの もじ</button><button class="tool-btn" id="btnSkip"><span>⏩</span>おてつだい</button></div>
+    </div>
+  </div>
+
   <!-- 1. Select Modal -->
   <div class="modal-overlay" id="modalSelect" role="dialog" aria-modal="true" aria-labelledby="lessonSelectTitle">
     <div class="modal">
@@ -185,7 +169,7 @@
           <label>こえの たかさ <span id="hotarukoPitchValue">1.25</span><input type="range" class="slider" id="hotarukoPitch" min="1" max="1.5" step="0.05" value="1.25"></label>
           <button class="btn" id="btnPreviewHotarukoVoice">こえを きく</button><p id="hotarukoVoiceStatus" role="status"></p>
         </fieldset>
-        <div class="grownup-records"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作⑲</small></div>
+        <div class="grownup-records"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作⑳</small></div>
         <details class="diagnostic-panel"><summary>描画の動作確認（支援者向け）</summary>
           <p>「ひ・ぬ・め・ね」など18文字の実データで、この端末の処理時間を測ります。練習の筆跡・成績は変更しません。</p>
           <div class="diagnostic-actions"><button class="btn" id="btnRunDiagnostics">18文字を検査する</button><button class="btn" id="btnStopDiagnostics" disabled>中止</button><button class="btn" id="btnExportDiagnostics" disabled>結果を書き出す</button><button class="btn" id="btnPracticeReported">ひ・ぬ・め・ねを練習する</button></div>

@@ -10,7 +10,9 @@
   const flag=(value,on='あり',off='なし')=>value===true?on:value===false?off:'不明';
   const seconds=value=>Number.isFinite(value)&&value>=0?String(value):'不明';
   const direction=settings.display?.direction==='vertical'?'縦書き':settings.display?.direction==='horizontal'?'横書き':'書字方向：不明';
-  const fields=[`判定：${level}`,`ほたるモード：${flag(settings.hotaru,'ON','OFF')}`,`ほたるON（${seconds(settings.visibleSec)}）秒／OFF（${seconds(settings.hiddenSec)}）秒${settings.hotaru===false?'〈設定値〉':''}`,`印：${flag(settings.showGuide)}`,`マス目：${flag(settings.showGrid)}`,direction];
+  const fields=[`判定：${level}`,`ほたるモード：${flag(settings.hotaru,'ON','OFF')}`];
+  if(settings.hotaru!==false)fields.push(`ほたるON（${seconds(settings.visibleSec)}）秒／OFF（${seconds(settings.hiddenSec)}）秒`);
+  fields.push(`印：${flag(settings.showGuide)}`,`マス目：${flag(settings.showGrid)}`,direction);
   if(settings.hotaru===true&&typeof settings.once==='boolean')fields.push('見本：'+(settings.once?'はじめだけ':'くりかえし'));
   if(Number.isFinite(settings.params?.dev)&&settings.params.dev>=0)fields.push(`判定許容幅：${settings.params.dev}px`);
   if(Number.isFinite(settings.params?.maxRatio)&&settings.params.maxRatio>0)fields.push(`塗りつぶし許容：${settings.params.maxRatio}倍`);

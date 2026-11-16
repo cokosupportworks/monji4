@@ -302,6 +302,7 @@
         for(const type of ['pointerdown','pointerup','touchend','click','keydown'])document.addEventListener(type,unlockAudio,true);
         this.bindEvents();
         this.bindFoundationEvents();
+        this.bindPracticeTools();
         this.resize();
         window.addEventListener('resize', () => { this.resize(); this.render();this.updateOrientation(); });
         window.addEventListener('orientationchange',()=>this.updateOrientation());
@@ -416,12 +417,13 @@
       }
 
       resize() {
+        const w = this.stage.clientWidth || 460, h = this.stage.clientHeight || 460,dpr=window.devicePixelRatio||1;
+        if(w===this.W&&h===this.H&&dpr===this.pixelRatio)return false;
         this.cancelDrawingFrame();
-        const previousW = this.W, previousH = this.H;
-        const normalized = previousW ? MonjiCore.pack(this.userStrokes, previousW, previousH) : null;
-        this.isDown = false; this.pointerId = null; this.drawing = [];
-        const w = this.stage.clientWidth || 460, h = this.stage.clientHeight || 460;
-        const dpr = window.devicePixelRatio || 1;
+        const previousW=this.W,previousH=this.H;
+        const normalized=previousW?MonjiCore.pack(this.userStrokes,previousW,previousH):null;
+        this.isDown=false;this.pointerId=null;this.activePointerType=null;this.drawing=[];
+        this.pixelRatio=dpr;
         [this.tplCanvas, this.inkCanvas, this.drwCanvas, this.anmCanvas].forEach(c => {
           c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
           c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
@@ -505,6 +507,7 @@
         if(draft?.sequence?.length){this.lessonSequence=[...draft.sequence];this.lessonIndex=draft.sequenceIndex||0;}
         else if(!keepSequence){this.lessonSequence=[];this.lessonIndex=0;}
         this.word = w.trim().normalize('NFC');
+        document.getElementById('btnTools').disabled=false;
         this.chars = Array.from(this.word);
         const matchingDraft = draft?.word === this.word;this.awaitingArrival=!matchingDraft;
         this.sessions = matchingDraft && Array.isArray(draft.items) ? draft.items : [];
@@ -649,6 +652,7 @@
       }
 
       selectFixed(index, event) {
+        if(this.isDown&&event?.pointerType==='pen'&&this.activePointerType==='touch')this.cancelStroke?.();
         if (this.display.mode !== 'fixed' || !Number.isInteger(index) || index < 0 || index >= this.chars.length ||
             this.loading || this.finishing || this.transitioning || this.isDown) return;
         if (event && ((event.pointerType === 'mouse' && event.button !== 0) || this.pointerId != null)) return;
@@ -800,45 +804,57 @@
 
       bindEvents() {
         const c = this.drwCanvas;
-        const addPoint = (e, bounds) => {
-          const p = this.getPos(e, bounds);
-          p.t = this.timeOffset + performance.now() - this.attemptStart;
-          const prev = this.drawing[this.drawing.length - 1];
-          if (!prev || MonjiCore.distance(prev, p) > 0.2) this.drawing.push(p);
+        const addPoint = (event,bounds) => {
+          if(!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return;
+          const stamp=Number.isFinite(event.timeStamp)?event.timeStamp:null;
+          if(stamp!==null&&this.lastSampleTime!==null&&stamp<this.lastSampleTime)return;
+          if(stamp!==null)this.lastSampleTime=stamp;
+          const point=this.getPos(event,bounds);point.t=this.timeOffset+performance.now()-this.attemptStart;
+          const previous=this.drawing.at(-1);if(!previous||MonjiCore.distance(previous,point)>.2)this.drawing.push(point);
         };
-        this.beginPointer = e => {
-          if (!this.inputEnabled() || this.pointerId != null || (e.pointerType === 'mouse' && e.button !== 0)) return;
-          e.preventDefault(); sound.init();
-          this.pointerId = e.pointerId; this.isDown = true; this.drawing = [];
-          this.speedPoints = []; this.armStopRequest();
-          try { c.setPointerCapture(e.pointerId); } catch {}
-          addPoint(e); this.renderDrawing();
+        const cancelStroke=()=>{
+          const id=this.pointerId;
+          clearTimeout(this.stopRequestTimer);this.cancelDrawingFrame();this.isDown=false;this.pointerId=null;this.activePointerType=null;this.drawing=[];this.renderDrawing();
+          try{if(id!=null)c.releasePointerCapture(id);}catch{}
         };
-        c.addEventListener('pointerdown', this.beginPointer);
-        c.addEventListener('pointermove', e => {
-          if (!this.isDown || e.pointerId !== this.pointerId) return;
-          e.preventDefault();
-          const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
-          const bounds = c.getBoundingClientRect();
-          for (const event of (events.length ? events : [e])) addPoint(event, bounds);
-          this.observeMovement(this.drawing[this.drawing.length - 1]);
-          this.queueDrawing();
-        });
-        c.addEventListener('pointerup', e => {
-          if (!this.isDown || e.pointerId !== this.pointerId) return;
-          addPoint(e); this.cancelDrawingFrame(); this.paintDrawingIncrement();
-          this.isDown = false; this.pointerId = null;
-          clearTimeout(this.stopRequestTimer);
-          try { c.releasePointerCapture(e.pointerId); } catch {}
+        this.cancelStroke=cancelStroke;
+        const finishPointer=(event,includeEnd=true)=>{
+          if(!this.isDown||event.pointerId!==this.pointerId)return;
+          event.preventDefault?.();if(includeEnd)addPoint(event);
+          this.cancelDrawingFrame();this.paintDrawingIncrement();
+          const id=this.pointerId;if(this.activePointerType==='pen')this.lastPenAt=performance.now();
+          this.isDown=false;this.pointerId=null;this.activePointerType=null;clearTimeout(this.stopRequestTimer);
+          try{c.releasePointerCapture(id);}catch{}
           this.checkStroke();
-        });
-        const cancel = e => {
-          if (e.pointerId !== this.pointerId) return;
-          clearTimeout(this.stopRequestTimer);
-          this.isDown = false; this.pointerId = null; this.drawing = []; this.renderDrawing();
         };
-        c.addEventListener('pointercancel', cancel);
-        c.addEventListener('lostpointercapture', cancel);
+        this.beginPointer=event=>{
+          if(!this.inputEnabled()||(event.pointerType==='mouse'&&event.button!==0))return;
+          // A resting finger must not own the stroke once the Pencil touches down.
+          if(this.pointerId!=null){if(event.pointerType==='pen'&&this.activePointerType==='touch')cancelStroke();else return;}
+          if(event.pointerType==='touch'&&performance.now()-(this.lastPenAt??-Infinity)<350)return;
+          event.preventDefault();sound.init();this.pointerId=event.pointerId;this.activePointerType=event.pointerType||'touch';this.isDown=true;this.drawing=[];
+          this.lastSampleTime=null;this.penHadContact=event.pointerType==='pen'&&(event.buttons===1||event.pressure>0);
+          this.speedPoints=[];this.armStopRequest();try{c.setPointerCapture(event.pointerId);}catch{}
+          addPoint(event);this.renderDrawing();
+        };
+        c.addEventListener('pointerdown',this.beginPointer);
+        document.addEventListener('pointermove',event=>{
+          if(!this.isDown||event.pointerId!==this.pointerId)return;
+          event.preventDefault();
+          let samples=[];try{samples=Array.from(event.getCoalescedEvents?.()||[]);}catch{}
+          samples=samples.filter(sample=>!Number.isFinite(event.timeStamp)||!Number.isFinite(sample.timeStamp)||sample.timeStamp<=event.timeStamp).sort((a,b)=>(a.timeStamp||0)-(b.timeStamp||0));
+          const hover=this.activePointerType==='pen'&&event.buttons===0&&event.pressure===0;
+          const batchContact=samples.some(sample=>sample.buttons===1||sample.pressure>0);
+          if(hover&&!batchContact&&this.penHadContact){finishPointer(event,false);return;}
+          if(this.activePointerType==='pen'&&(event.buttons===1||event.pressure>0||batchContact))this.penHadContact=true;
+          const bounds=c.getBoundingClientRect();for(const sample of samples)addPoint(sample,bounds);
+          // Some engines return only earlier samples: always retain the dispatched endpoint.
+          if(!hover)addPoint(event,bounds);this.observeMovement(this.drawing.at(-1));this.queueDrawing();
+        },{capture:true,passive:false});
+        document.addEventListener('pointerup',event=>finishPointer(event),{capture:true,passive:false});
+        document.addEventListener('pointercancel',event=>{if(event.pointerId===this.pointerId)cancelStroke();},true);
+        // Capture loss alone is not a cancelled stroke. Document listeners still own its pen-up.
+        c.addEventListener('lostpointercapture',()=>{});
 
         const onClk = (id, fn) => {
           const el = document.getElementById(id);
@@ -857,14 +873,6 @@
           e.currentTarget.classList.toggle('active', this.showGuide);
           this.render();
         });
-        onClk('btnSound', (e) => {
-          sound.on = !sound.on;
-          if(!sound.on){sound.stopTrain?.();sound.stopFeedback?.();speech.cancel();}else{sound.init();speech.unlock();}
-          speech.enabled = sound.on;
-          this.updateSoundButton();
-          this.showToast(sound.on ? 'おとを だすよ' : 'おとを けしたよ');
-        });
-
         onClk('badgeStrict', () => {
           const lvls = ['easy', 'normal', 'strict'];
           this.setStrict(lvls[(lvls.indexOf(this.level) + 1) % lvls.length]);
@@ -990,11 +998,6 @@
         const chosen=speech.selectedVoice();
         document.getElementById('hotarukoVoiceStatus').textContent=chosen?'使用する声：'+chosen.name+'。「こえを きく」で確認できます。':'女性の声の候補が見つかりません。利用できる声を選んで試聴してください。端末に女性の日本語音声を追加すると、選べる場合があります。';
       }
-      updateSoundButton() {
-        const button=document.getElementById('btnSound');button.textContent=sound.on?'♪ おと':'おと なし';
-        button.setAttribute('aria-label',sound.on?'おとを けす':'おとを だす');button.setAttribute('aria-pressed',String(sound.on));
-      }
-
       restoreSettings(saved) {
         this.archive = window.monjiArchive;
         this.display = { mode: saved.display?.mode === 'fixed' ? 'fixed' : 'flow', direction: saved.display?.direction === 'horizontal' ? 'horizontal' : 'vertical',
@@ -1019,7 +1022,7 @@
         this.hotaru.currentOpacity = this.baseOpacity;
         this.showGuide = saved.showGuide !== false;
         this.showGrid = saved.showGrid !== false;
-        sound.on = saved.sound !== false; speech.enabled = sound.on;
+        sound.on = true; speech.enabled = true;
         speech.configure(saved.speech||{});this.renderVoiceSettings();speech.onVoicesChanged=()=>this.renderVoiceSettings();
         if (['easy','normal','strict'].includes(saved.level)) this.level = saved.level;
         if (saved.params) for (const level of ['easy','normal','strict']) {
@@ -1037,7 +1040,6 @@
         document.getElementById('lblHotaruHid').textContent = this.hotaru.hiddenSec.toFixed(1) + '秒';
         document.getElementById('sldOpac').value = this.baseOpacity * 100;
         document.getElementById('lblOpac').textContent = Math.round(this.baseOpacity * 100) + '%';
-        this.updateSoundButton();
         document.getElementById('gridLayer').style.display = this.showGrid ? 'block' : 'none';
         document.getElementById('btnGrid').classList.toggle('active', this.showGrid);
         document.getElementById('btnGuide').classList.toggle('active', this.showGuide);
@@ -1166,7 +1168,7 @@
         document.getElementById('hotarukoVoice').onchange=event=>{speech.voiceId=event.target.value;speech.cancel();this.renderVoiceSettings();this.saveSettings();};
         document.getElementById('hotarukoPitch').oninput=event=>{speech.pitch=Math.max(1,Math.min(1.5,Number(event.target.value)||1.25));document.getElementById('hotarukoPitchValue').textContent=speech.pitch.toFixed(2);};
         document.getElementById('btnPreviewHotarukoVoice').onclick=()=>{
-          if(!sound.on){document.getElementById('hotarukoVoiceStatus').textContent='「おと」をオンにしてから、こえを きいてね。';return;}
+          if(!sound.on){document.getElementById('hotarukoVoiceStatus').textContent='音声は停止中です。アプリを開き直し、端末の音量を確認してください。';return;}
           speech.speak('ほたるこだよ。いっしょに、もじを かこうね。',.9);
         };
         document.getElementById('chkOnce').onchange = e => {
@@ -1180,7 +1182,7 @@
         const settings = document.getElementById('modalSettings');
         settings.addEventListener('input', () => this.saveSettings());
         settings.addEventListener('change', () => this.saveSettings());
-        for (const id of ['btnSound','btnGuide','btnGrid','badgeStrict'])
+        for (const id of ['btnGuide','btnGrid','badgeStrict'])
           document.getElementById(id).addEventListener('click', () => this.saveSettings());
         for (const button of settings.querySelectorAll('.set-strict')) button.addEventListener('click', () => this.saveSettings());
         const suspend = () => {
@@ -1209,6 +1211,28 @@
       }
 
 
+      bindPracticeTools(){
+        const button=document.getElementById('btnTools'),modal=document.getElementById('modalTools'),closeButton=document.getElementById('btnCloseTools');
+        const close=(resume=true)=>{modal.classList.remove('open');button.setAttribute('aria-expanded','false');button.focus?.();if(resume)this.updateOrientation();};
+        button.onclick=()=>{
+          if(!this.word||this.isDown||this.transitioning)return;
+          clearTimeout(this.autoAdvanceTimer);clearTimeout(this.stopRequestTimer);this.stopHotaru();this.stopAnim();this.saveDraft();
+          modal.classList.add('open');button.setAttribute('aria-expanded','true');closeButton.focus?.();
+        };
+        closeButton.onclick=()=>close();
+        modal.onclick=event=>{if(event.target===modal)close();};
+        for(const id of ['btnDemo','btnUndo','btnReset','btnGrid','btnGuide','btnPrev','btnNext','btnSkip']){
+          const tool=document.getElementById(id),action=tool.onclick;
+          tool.onclick=event=>{close(false);action?.call(tool,event);this.updateOrientation();};
+        }
+        document.addEventListener('keydown',event=>{if(event.key==='Escape'&&modal.classList.contains('open')){event.preventDefault();close();}});
+        modal.addEventListener('keydown',event=>{
+          if(event.key!=='Tab')return;
+          const buttons=Array.from(modal.querySelectorAll('button')).filter(item=>!item.disabled),first=buttons[0],last=buttons.at(-1);
+          if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus?.();}
+          else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus?.();}
+        });
+      }
       bindJourneyEvents() {
         const change = () => {
           if (this.transitioning) return;

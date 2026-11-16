@@ -13,7 +13,7 @@ async function run(){
  // The capture-phase audio unlock must not reset an uncommitted native select value.
  get('hotarukoVoice').value='oren';document.emit('pointerup');assert.equal(get('hotarukoVoice').value,'oren');get('hotarukoVoice').emit('change');assert.equal(speech.voiceId,'oren');
  const saved=states.get('settings');app.restoreSettings(saved);assert.equal(speech.voiceId,'oren');assert.equal(speech.pitch,1.35);
- sound.on=false;speech.enabled=false;const muted=spoken.length;get('btnPreviewHotarukoVoice').click();assert.equal(spoken.length,muted);assert.match(get('hotarukoVoiceStatus').textContent,/オン/);
+ sound.on=false;speech.enabled=false;const muted=spoken.length;get('btnPreviewHotarukoVoice').click();assert.equal(spoken.length,muted);assert.match(get('hotarukoVoiceStatus').textContent,/音量/);
  voices=[male];changed();assert.equal(speech.selectedVoice(),null);assert.ok(get('hotarukoVoice').children.some(option=>option.value==='oren'&&option.disabled),'unavailable saved choice is retained and explained');
  voices=[male,female];changed();assert.equal(speech.selectedVoice(),female,'downloaded female voice becomes available after voiceschanged');assert.match(get('hotarukoVoiceStatus').textContent,/Kyoko/);
  console.log('PASS: female Japanese voice priority over male native default, quality, explicit choice and pitch persistence, no male fallback, preview/mute, safe native selection, missing/late voices and hotaru setting order');

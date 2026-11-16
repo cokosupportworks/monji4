@@ -5,6 +5,14 @@
   function length(points) {
     return points.slice(1).reduce((sum, point, i) => sum + distance(points[i], point), 0);
   }
+  // Tiny, densely reported stylus jitter must not count as repeated handwriting.
+  // Radial sampling preserves intentional backtracking; the original ink is untouched.
+  function measuredLength(points,step=2){
+    if(points.length<2)return 0;
+    let previous=points[0],total=0;
+    for(let i=1;i<points.length-1;i++)if(distance(previous,points[i])>=step){total+=distance(previous,points[i]);previous=points[i];}
+    return total+distance(previous,points[points.length-1]);
+  }
   function resample(points, step = 2) {
     if (!points.length) return [];
     const result = [{ ...points[0] }];
@@ -73,14 +81,14 @@
   }
   function evaluate(target, input, cfg) {
     if (target.length < 2) return { pass: false, msg: 'おてほんを もういちど ひらいてね' };
-    if (!input || input.length < 2 || length(input) < 1) return { pass: false, msg: 'すこし せんを かいてみよう' };
+    if (!input || input.length < 2 || measuredLength(input) < 1) return { pass: false, msg: 'すこし せんを かいてみよう' };
     const start = input[0], end = input[input.length - 1];
     const a = target[0], b = target[target.length - 1];
     if (distance(start, b) + distance(end, a) + 2 < distance(start, a) + distance(end, b))
       return { pass: false, msg: 'ここから、こちらむきに かいてみよう' };
     if (distance(start, a) > cfg.startTol) return { pass: false, msg: 'はじめの しるしから かいてみよう' };
     if (distance(end, b) > cfg.startTol) return { pass: false, msg: 'もうすこし さきまで かいてみよう' };
-    const ratio = length(input) / Math.max(1, length(target));
+    const ratio = measuredLength(input) / Math.max(1, length(target));
     if (ratio > cfg.maxRatio) return { pass: false, msg: 'ひとふでで、ゆっくり かいてみよう' };
     if (ratio < 0.55) return { pass: false, msg: 'せんの かたちを おもいだしてみよう' };
     const user = resample(input), model = resample(target);
@@ -97,6 +105,6 @@
   function unpack(strokes, width, height) {
     return strokes.map(stroke => stroke.map(p => ({ x: p.x * width, y: p.y * height, t: p.t || 0 })));
   }
-  root.MonjiCore = { distance, length, resample, evaluate, pack, unpack };
+  root.MonjiCore = { distance, length, measuredLength, resample, evaluate, pack, unpack };
   if (typeof module !== 'undefined') module.exports = root.MonjiCore;
 })(globalThis);

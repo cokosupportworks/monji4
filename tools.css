@@ -1,0 +1,17 @@
+/* A resting hand has no tool buttons beside the writing surface. */
+main {grid-template-columns:minmax(0,1fr);}
+.practice-tools {z-index:160;}
+.practice-tools>.modal {max-width:600px;max-height:calc(100dvh - 24px);background:#fffdf3;}
+.practice-tools h2 {font-size:21px;}
+.practice-tool-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:18px;overflow-y:auto;touch-action:pan-y;}
+.practice-tool-grid .tool-btn {min-height:76px;padding:10px 6px;font-size:15px;line-height:1.4;gap:6px;}
+.practice-tools .modal-head>.btn {min-height:44px;}
+.practice-tool-grid .tool-btn>span {font-size:21px;}
+.practice-tool-grid .tool-btn.active {background:#e5efd9;border-color:#64885b;color:#35573d;}
+#btnTools {min-width:68px;}
+#btnTools:disabled {opacity:.45;}
+@media(max-width:600px) and (orientation:portrait){.practice-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.practice-tool-grid .tool-btn{min-height:68px;}}
+@media(max-height:500px){.practice-tool-grid{gap:8px;padding:10px;}.practice-tool-grid .tool-btn{min-height:56px;padding:5px;font-size:12px;gap:2px;}.practice-tool-grid .tool-btn>span{font-size:17px;}.practice-tools .modal-head{padding:8px 12px;}.practice-tools h2{font-size:17px;}}
+
+/* The resting hand must not turn the writing area into a scroll gesture. */
+.journey {touch-action:none;}

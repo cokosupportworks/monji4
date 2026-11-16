@@ -47,7 +47,7 @@ async function run(){
  readable(document.querySelector('header'));readable(document.querySelector('main'));readable(document.querySelector('footer'));readable(document.getElementById('modalSelect'));
  assert.equal(document.getElementById('badgeStrict').closest('#modalSettings')?.id,'modalSettings','judgement controls are outside child practice');
  assert.equal(document.getElementById('btnExportPending').closest('#modalSettings')?.id,'modalSettings','recovery details are in adult settings');
- document.getElementById('btnCloseSelect').click();document.getElementById('btnSound').click();readable(document.querySelector('header'));readable(document.querySelector('main'));
+ document.getElementById('btnCloseSelect').click();document.getElementById('btnTools').click();readable(document.getElementById('modalTools'));document.getElementById('btnCloseTools').click();readable(document.querySelector('header'));readable(document.querySelector('main'));
  app.storageStatus(false);readable(document.querySelector('footer'));app.setNotice('おてほんを ひらけなかったよ。');readable(document.querySelector('main'));
  app.journey.viewport.clientWidth;app.display.mode='fixed';app.journey.apply(app.display);app.journey.layout();readable(app.journey.note);
  const messages=[context.MonjiCore.evaluate([],[],app.params.normal).msg,context.MonjiCore.evaluate([{x:0,y:0},{x:100,y:0}],[],app.params.normal).msg];
