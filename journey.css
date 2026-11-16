@@ -89,3 +89,6 @@ body {min-height:620px;}
 .whole-train-car {flex:none;width:var(--whole-car-size);max-width:none;aspect-ratio:480/560;}
 .journey[data-direction="vertical"] .whole-train {flex-direction:column;}
 .journey[data-direction="vertical"] .journey-finale {gap:14px;}
+
+/* Opacity hides the full compositor layer; child visibility:visible cannot override it. */
+.journey.journey-preparing>.journey-track,.journey.arrival-pending>.journey-track,.journey.word-finished>.journey-track,.journey.orientation-blocked>.journey-track {opacity:0!important;pointer-events:none;}

@@ -41,7 +41,7 @@ loader.load=async()=>[curve];
 const flush=()=>new Promise(setImmediate);
 function frame(time){const pending=[...frames.values()];frames.clear();for(const fn of pending)fn(time);}
 async function run(){
- const app=new App();await flush();await app.journey.ready;
+ const app=new App();await flush();await app.setWord('ひ');await app.journey.ready;
  const sampled=queries,lengthSampled=lengthQueries;
  for(let i=0;i<100;i++){samplePath(curve,460,460);samplePath(curve,400,400);samplePath(curve,220,220);}
  assert.equal(queries,sampled,'SVG geometry is not recalculated on repeated uses and sizes');

@@ -11,10 +11,10 @@ vm.createContext(context);for(const file of ['core.js','journey.js','word-archiv
 let src=fs.readFileSync(path.join(base,'app.js'),'utf8');src=src.slice(0,src.indexOf('    let booting = false;'))+' globalThis.testExports={App,loader,Sound}; })();';vm.runInContext(src,context);context.testExports.loader.load=async()=>['M20,50 L90,50'];
 const flush=()=>new Promise(setImmediate);
 async function verify(){
- const app=new context.testExports.App();await flush();const j=app.journey;
+ const app=new context.testExports.App();const starting=app.setWord('あ');await flush();const j=app.journey;
  assert.equal(app.transitioning,true);assert.equal(app.inputEnabled(),false);
  const arrival=animations.at(-1);assert.equal(arrival.options.duration,2600);assert.match(arrival.frames[0].transform,/translate\(-50%, calc\(-50% \+ [1-9]/);
- assert.match(j.cards[1].art.src,/locomotive-top-(white|green|blue|red).svg/);arrival.finish();await flush();assert.equal(app.transitioning,false);assert.equal(j.animation,null);assert.match(j.cards[1].art.src,/locomotive-top-(white|green|blue|red).svg/);
+ assert.match(j.cards[1].art.src,/locomotive-top-(white|green|blue|red).svg/);arrival.finish();await starting;await flush();assert.equal(app.transitioning,false);assert.equal(j.animation,null);assert.match(j.cards[1].art.src,/locomotive-top-(white|green|blue|red).svg/);
  app.chars=['あ','い'];app.sessions=[{},{}];app.cIdx=1;app.scheduleAdvance();assert.equal([...timers.values()].filter(t=>t.delay===1200).length,0);
  const changing=app.setWord('あ');await flush();animations.at(-1).finish();await changing;
  app.sIdx=1;app.userStrokes=[[{x:20,y:50,t:0},{x:90,y:50,t:600}]];app.skipped=[false];await app.finishChar();

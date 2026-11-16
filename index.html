@@ -18,8 +18,9 @@
   <link rel="stylesheet" href="album.css">
   <link rel="stylesheet" href="practice.css">
   <link rel="stylesheet" href="hotaruko.css">
+  <link rel="stylesheet" href="responsive.css">
 </head>
-<body>
+<body class="no-task">
 
   <svg id="svgHelper" style="position:fixed; top:-9999px; left:-9999px; width:109px; height:109px; visibility:hidden; pointer-events:none;" viewBox="0 0 109 109">
     <path id="svgHelperPath" d="" />
@@ -52,6 +53,7 @@
     </aside>
 
     <div class="center-container">
+      <section id="welcomeMessage" class="welcome-message"><p>れんしゅうしたい もじや ことばを えらんでください</p><button class="btn btn-primary" id="btnWelcomeSelect">もじを えらぶ</button></section>
       <section class="stage" id="stage">
         <div class="grid" id="gridLayer">
           <div class="grid-inner"></div>
@@ -177,7 +179,7 @@
           <input type="range" class="slider" id="sldHotaruHid" min="5" max="100" value="10">
           <label style="display:flex;gap:8px;align-items:center;margin-top:16px"><input type="checkbox" id="chkOnce"> はじめだけ見本を表示する</label>
         </div>
-        <div class="grownup-records"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作⑭</small></div>
+        <div class="grownup-records"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作⑯</small></div>
         <details class="diagnostic-panel"><summary>描画の動作確認（支援者向け）</summary>
           <p>「ひ・ぬ・め・ね」など18文字の実データで、この端末の処理時間を測ります。練習の筆跡・成績は変更しません。</p>
           <div class="diagnostic-actions"><button class="btn" id="btnRunDiagnostics">18文字を検査する</button><button class="btn" id="btnStopDiagnostics" disabled>中止</button><button class="btn" id="btnExportDiagnostics" disabled>結果を書き出す</button><button class="btn" id="btnPracticeReported">ひ・ぬ・め・ねを練習する</button></div>

@@ -6,20 +6,32 @@
     class Sound {
       constructor() { this.ctx = null; this.on = true; }
       init() {
-        if (!this.ctx) {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (AC) this.ctx = new AC();
-        }
-        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(()=>{});
+        try {
+          if(this.ctx?.state==='closed'){this.ctx=null;this.noiseBuffer=null;}
+          if(!this.ctx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)this.ctx=new AC();}
+          if(!this.ctx)return;
+          const ctx=this.ctx;
+          if(ctx.state==='suspended'||ctx.state==='interrupted')this.ready=Promise.resolve(ctx.resume()).catch(error=>{this.lastError=error;return false;});
+          else this.ready=Promise.resolve(true);
+        }catch(error){this.lastError=error;}
+      }
+      whenReady(play,active=()=>true){
+        const ctx=this.ctx;if(!ctx)return;
+        const run=()=>{if(this.on&&this.ctx===ctx&&(!ctx.state||ctx.state==='running')&&active())play(ctx);};
+        if(!ctx.state||ctx.state==='running')run();else Promise.resolve(this.ready).then(run).catch(error=>{this.lastError=error;});
       }
       success() {
-        if (!this.on) return; this.init(); if (!this.ctx) return;
-        try {
-          const t = this.ctx.currentTime, o = this.ctx.createOscillator(), g = this.ctx.createGain();
-          o.type = 'sine'; o.frequency.setValueAtTime(523.25, t); o.frequency.setValueAtTime(783.99, t + 0.08);
-          g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-          o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.3);
-        } catch(e){}
+        if(!this.on)return;this.init();const requested=performance.now();
+        this.whenReady(ctx=>{
+          try{
+            const t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();
+            o.type='sine';o.frequency.setValueAtTime(988,t);
+            g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.12,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+.115);
+            o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.12);
+            this.stopFeedback=()=>{try{o.stop();}catch(e){}};
+            o.onended=()=>{o.disconnect?.();g.disconnect?.();};
+          }catch(error){this.lastError=error;}
+        },()=>performance.now()-requested<400);
       }
       fail() {
         if (!this.on) return; this.init(); if (!this.ctx) return;
@@ -30,23 +42,38 @@
           o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.25);
         } catch(e){}
       }
-      train(duration) {
+      train(duration, delay=0) {
         this.stopTrain?.();
-        if (!this.on) return () => {};
-        this.init(); if (!this.ctx) return () => {};
-        const voices=[];
-        try {
-          const t=this.ctx.currentTime;
-          // Gentle paired wheel/rail clicks; bounded to the visual sequence.
-          for(let beat=0;beat<duration/1000;beat+=.48) for(const shift of [0,.14]) {
-            const o=this.ctx.createOscillator(),g=this.ctx.createGain(),at=t+beat+shift;
-            o.type='triangle';o.frequency.setValueAtTime(shift?135:95,at);
-            g.gain.setValueAtTime(.045,at);g.gain.exponentialRampToValueAtTime(.001,at+.075);
-            o.connect(g);g.connect(this.ctx.destination);o.start(at);o.stop(at+.08);voices.push(o);
-          }
-        } catch(e) {}
-        const stop=()=>{for(const voice of voices)try{voice.stop();}catch(e){}};
-        this.stopTrain=stop;return ()=>{stop();if(this.stopTrain===stop)this.stopTrain=null;};
+        if(!this.on)return()=>{};this.init();
+        let active=true;const voices=[],deadline=performance.now()+duration+delay;
+        const stop=()=>{active=false;for(const voice of voices)try{voice.stop();}catch(e){}};
+        this.stopTrain=stop;
+        this.whenReady(ctx=>{
+          try {
+            const t=ctx.currentTime+delay/1000;
+            if(ctx.createBuffer&&!this.noiseBuffer){
+              this.noiseBuffer=ctx.createBuffer(1,Math.ceil((ctx.sampleRate||44100)*.07),ctx.sampleRate||44100);
+              const data=this.noiseBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/data.length*4);
+            }
+            for(let beat=0;beat<duration/1000;beat+=.48)for(const shift of [0,.16]){
+              if(beat+shift>=duration/1000)continue;
+              const at=t+beat+shift,o=ctx.createOscillator(),g=ctx.createGain();
+              o.type='triangle';o.frequency.setValueAtTime(shift?460:330,at);
+              g.gain.setValueAtTime(.001,at);g.gain.exponentialRampToValueAtTime(.13,at+.004);g.gain.exponentialRampToValueAtTime(.001,at+.085);
+              o.connect(g);g.connect(ctx.destination);o.start(at);o.stop(at+.09);voices.push(o);
+              o.onended=()=>{o.disconnect?.();g.disconnect?.();};
+              if(this.noiseBuffer&&ctx.createBufferSource){
+                const clack=ctx.createBufferSource(),volume=ctx.createGain();clack.buffer=this.noiseBuffer;
+                volume.gain.setValueAtTime(.15,at);volume.gain.exponentialRampToValueAtTime(.001,at+.065);
+                const filter=ctx.createBiquadFilter?.();
+                if(filter){filter.type='bandpass';filter.frequency.setValueAtTime(1400,at);filter.Q.setValueAtTime(.7,at);clack.connect(filter);filter.connect(volume);}else clack.connect(volume);
+                volume.connect(ctx.destination);clack.start(at);clack.stop(at+.07);voices.push(clack);
+                clack.onended=()=>{clack.disconnect?.();filter?.disconnect?.();volume.disconnect?.();};
+              }
+            }
+          }catch(error){this.lastError=error;}
+        },()=>active&&performance.now()<deadline);
+        return()=>{stop();if(this.stopTrain===stop)this.stopTrain=null;};
       }
       complete() {
         if (!this.on) return; this.init(); if (!this.ctx) return;
@@ -64,19 +91,27 @@
     const sound = new Sound();
 
     class SpeechHelper {
-      constructor() {
-        this.enabled = true;
+      constructor(){
+        this.enabled=true;this.current=null;this.voices=[];this.loadVoices();
+        window.speechSynthesis?.addEventListener?.('voiceschanged',()=>this.loadVoices());
       }
-      speak(text, rate = 0.85) {
-        if (!this.enabled || !('speechSynthesis' in window) || !text) return;
-        try {
-          window.speechSynthesis.cancel();
-          const uttr = new SpeechSynthesisUtterance(text);
-          uttr.lang = 'ja-JP';
-          uttr.rate = rate; // 特別支援教育向けにややゆっくり落ち着いたスピード
-          uttr.pitch = 1.15; // 親しみやすい明るいトーン
-          window.speechSynthesis.speak(uttr);
-        } catch (e) {}
+      loadVoices(){try{this.voices=window.speechSynthesis?.getVoices?.()||[];}catch{this.voices=[];}}
+      unlock(){this.loadVoices();if(window.speechSynthesis?.paused)window.speechSynthesis.resume();}
+      cancel(){this.current=null;try{window.speechSynthesis?.cancel();}catch{}}
+      speak(text,rate=.85){
+        const synth=window.speechSynthesis,Utterance=window.SpeechSynthesisUtterance||globalThis.SpeechSynthesisUtterance;
+        if(!this.enabled||!synth||!Utterance||!text)return;
+        try{
+          if(this.current||synth.speaking||synth.pending)this.cancel();
+          this.unlock();const utterance=new Utterance(text);
+          utterance.lang='ja-JP';utterance.rate=rate;utterance.pitch=1.1;utterance.volume=1;
+          const japanese=this.voices.filter(voice=>/^ja(?:-|$)/i.test(voice.lang));
+          const voice=japanese.find(voice=>voice.localService)||japanese[0];if(voice)utterance.voice=voice;
+          this.current=utterance;
+          utterance.onend=()=>{if(this.current===utterance)this.current=null;};
+          utterance.onerror=event=>{this.lastError=event.error;if(this.current===utterance)this.current=null;};
+          synth.speak(utterance);
+        }catch(error){this.lastError=error;}
       }
     }
     const speech = new SpeechHelper();
@@ -205,7 +240,7 @@
     // 6. Main App Controller
     class App {
       constructor() {
-        this.word = 'あ';
+        this.word = '';
         this.chars = Array.from(this.word);
         this.cIdx = 0;
         this.strokes = [];
@@ -250,6 +285,8 @@
         this.toast = document.getElementById('toast');
         this.hanamaru = document.getElementById('hanamaru');
 
+        const unlockAudio=event=>{if(sound.on&&!event.isComposing){sound.init();speech.unlock();}};
+        for(const type of ['pointerdown','pointerup','touchend','click','keydown'])document.addEventListener(type,unlockAudio,true);
         this.bindEvents();
         this.bindFoundationEvents();
         this.resize();
@@ -274,7 +311,9 @@
           }
         });
         this.updateOrientation();
-        this.setWord(window.monjiDraft?.word || this.word, window.monjiDraft);
+        this.journey.beginReset();
+        this.setNotice('');
+        this.renderPills();
       }
 
       loadHistory() {
@@ -379,10 +418,11 @@
 
       orientationReady(){return globalThis.MonjiOrientationMatches(this.display?.direction||'vertical',window.innerWidth,window.innerHeight);}
       updateOrientation(){
-        const ready=this.orientationReady();this.journey?.setOrientationBlocked(!ready,this.display?.direction||'vertical');
+        const ready=this.orientationReady();this.journey?.setOrientationBlocked(!!this.word&&!ready,this.display?.direction||'vertical');
         const hint=document.getElementById('selectionOrientationHint');
         if(hint){hint.hidden=ready;hint.textContent=this.display?.direction==='vertical'?'がめんを たてにすると はじめられるよ。':'がめんを よこにすると はじめられるよ。';}
         this.lessonLibrary?.syncDraft();
+        if(!this.word)return;
         if(!ready){this.cancelDrawingFrame();this.isDown=false;this.pointerId=null;this.drawing=[];this.renderDrawing();clearTimeout(this.autoAdvanceTimer);clearTimeout(this.stopRequestTimer);this.stopHotaru();sound.stopTrain?.();this.journey?.animation?.finish();}
         else if(this.awaitingArrival && !this.loading && !this.preparingWord)this.resumeArrival();
         else if(this.hotaru.enabled && this.inputEnabled())this.startHotaru();
@@ -399,8 +439,8 @@
       startSequence(words){
         if(this.finishing||this.transitioning||this.isDown||!words.length||!this.orientationReady())return false;
         this.lessonSequence=[...words];this.lessonIndex=0;
-        document.getElementById('modalSelect').classList.remove('open');
-        this.setWord(words[0],null,true);return true;
+        this.setWord(words[0],null,true);
+        document.getElementById('modalSelect').classList.remove('open');return true;
       }
       showPracticeEnd(){
         this.departedPractice=this.practiceId;
@@ -424,6 +464,9 @@
         clearTimeout(this.autoAdvanceTimer);clearTimeout(this.stopRequestTimer);
         this.preparingWord=true;this.awaitingArrival=!draft;this.stopHotaru();this.stopAnim();sound.stopTrain?.();
         this.journey?.beginReset();this.journey?.clearFinale();
+        if(this.journey?.welcome)this.journey.welcome.hidden=true;
+        document.querySelector('body')?.classList.remove('no-task');
+        if(!draft)speech.speak('はじめるよ',.9);
         if(draft?.sequence?.length){this.lessonSequence=[...draft.sequence];this.lessonIndex=draft.sequenceIndex||0;}
         else if(!keepSequence){this.lessonSequence=[];this.lessonIndex=0;}
         this.word = w.trim().normalize('NFC');
@@ -489,6 +532,7 @@
 
       renderPills() {
         const container = document.getElementById('wordPills');
+        if(!this.chars.length){container.replaceChildren();document.getElementById('wordProgress').textContent='';return;}
         const key = this.practiceId + ':' + this.word;
         const reuse = container.dataset.practice === key && container.children.length === this.chars.length;
         if (!reuse) { container.replaceChildren(); container.dataset.practice = key; }
@@ -521,6 +565,7 @@
       }
 
       async loadChar() {
+        if(!this.chars.length)return;
         if (this.finishing || (this.transitioning && !this.travelLoading)) return;
         this.rememberCurrent();
         const generation = ++this.loadGeneration, index = this.cIdx, ch = this.chars[index];
@@ -566,7 +611,6 @@
             this.hanamaru.classList.remove('show');
             if (!previous.archived) this.finishChar();
           } else if (this.hotaru.enabled && !document.querySelector('.modal-overlay.open')) this.startHotaru();
-          if(this.chars.length===1 && this.sIdx<strokes.length)speech.speak(this.chars[index]);
       }
 
       selectFixed(index, event) {
@@ -780,7 +824,7 @@
         });
         onClk('btnSound', (e) => {
           sound.on = !sound.on;
-          if(!sound.on)sound.stopTrain?.();
+          if(!sound.on){sound.stopTrain?.();sound.stopFeedback?.();speech.cancel();}else{sound.init();speech.unlock();}
           speech.enabled = sound.on;
           this.updateSoundButton();
           this.showToast(sound.on ? 'おとを だすよ' : 'おとを けしたよ');
@@ -808,6 +852,7 @@
           if (mSel) mSel.classList.add('open');
           const body=mSel?.querySelector('.modal-body');if(body)body.scrollTop=0;
         });
+        onClk('btnWelcomeSelect',()=>document.getElementById('btnOpenSelect').click());
         onClk('btnCloseSelect', () => { if (mSel) mSel.classList.remove('open'); });
         onClk('btnSettings', () => { if (mSet) mSet.classList.add('open'); });
         onClk('btnCloseSettings', () => { if (mSet) mSet.classList.remove('open'); });
@@ -978,6 +1023,7 @@
       }
 
       saveDraft() {
+        if(!this.word)return;
         this.rememberCurrent();
         const draft = { word: this.word, index: this.cIdx, items: this.sessions, practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt, sequence:this.lessonSequence||[],sequenceIndex:this.lessonIndex||0,trainTheme:this.trainTheme,finished:this.departedPractice===this.practiceId };
         const copy = typeof structuredClone === 'function' ? structuredClone(draft) : JSON.parse(JSON.stringify(draft));
@@ -1084,7 +1130,7 @@
           clearTimeout(this.stopRequestTimer);
           this.isDown = false; this.pointerId = null; this.drawing = []; this.renderDrawing();
           this.stopAnim(); this.stopHotaru(); this.saveDraft();
-          if ('speechSynthesis' in window) speechSynthesis.cancel();
+          speech.cancel();
         };
         for (const id of ['btnOpenSelect','btnOpenRecord','btnSettings']) document.getElementById(id).addEventListener('click', suspend);
         for (const id of ['btnCloseSelect','btnCloseRecord','btnCloseSettings']) document.getElementById(id).addEventListener('click', () => {
@@ -1122,6 +1168,7 @@
 
       scheduleAdvance() {
         clearTimeout(this.autoAdvanceTimer);
+        if(!this.chars.length)return;
         const allDone=this.chars.every((_,i)=>this.sessions[i]?.complete);
         if(allDone && this.departedPractice!==this.practiceId) {
           const practice=this.practiceId;
@@ -1149,7 +1196,7 @@
           // Validate the destination before moving the child's work out of view.
           await loader.load(this.chars[index]);
           if (token !== this.travelGeneration || document.hidden || document.querySelector('.modal-overlay.open')) return;
-          if (this.journey) await this.journey.move(index - previous);
+          if (this.journey) await this.journey.move(index - previous,duration=>sound.train(duration));
           if (token !== this.travelGeneration || document.hidden || document.querySelector('.modal-overlay.open')) {
             this.journey?.refresh(this.chars, previous, this.sessions, loader, samplePath);
             return;
@@ -1336,7 +1383,7 @@
         const normalize = pts => pts.map(p => ({ x: p.x * scale, y: p.y * scale }));
         const res = evaluateStroke(target, normalize(this.drawing), this.params[this.level]);
         if (res.pass) {
-          if(this.sIdx+1<this.strokes.length)sound.success(); this.userStrokes[this.sIdx] = this.drawing.map(p => ({ ...p }));
+          sound.success(); this.userStrokes[this.sIdx] = this.drawing.map(p => ({ ...p }));
           this.skipped[this.sIdx] = false; this.drawing = []; this.sIdx++;
           this.saveDraft();
           if (this.sIdx >= this.strokes.length) this.finishChar();
@@ -1375,7 +1422,6 @@
           this.coachSay('ぜんぶ かけました！ しゅっぱつ、しんこう〜','praise');
           speech.speak('全部書けました！出発、進行〜',0.9);
         }else{
-          sound.train(480);
           const coach=document.getElementById('hotarukoCoach');if(coach)coach.dataset.pose='guide';
         }
         this.scheduleAdvance();

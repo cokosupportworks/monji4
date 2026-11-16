@@ -40,6 +40,7 @@
       this.progress=document.createElement('div');this.progress.className='journey-progress';this.progress.setAttribute('aria-live','polite');
       this.note=document.createElement('div');this.note.className='journey-size-note';
       stage.replaceWith(this.viewport);this.viewport.append(this.rail,this.track,this.marker,this.progress,this.note);
+      this.welcome=document.getElementById('welcomeMessage');if(this.welcome)this.viewport.append(this.welcome);
       this.display={mode:'flow',direction:'vertical',train:true,reduced:false};
       this.build([],0);
       this.viewport.addEventListener('pointerdown',event=>{
@@ -95,10 +96,10 @@
       this.viewport.dataset.trainColor=this.theme;this.setArtwork();
     }
     beginReset(){
-      this.generation++;this.viewport.classList.add('journey-preparing');this.track.style.visibility='hidden';
+      this.generation++;this.viewport.classList.add('journey-preparing');this.track.style.opacity='0';this.track.style.visibility='hidden';
       if(this.animation){this.animation.cancel();this.animation=null;}
     }
-    revealPrepared(){this.viewport.classList.remove('journey-preparing','arrival-pending');this.track.style.visibility='';}
+    revealPrepared(){this.viewport.classList.remove('journey-preparing','arrival-pending');this.track.style.visibility='';this.track.style.opacity='';}
     setOrientationBlocked(blocked,direction){
       this.orientationBlocked=blocked;
       if(!this.orientationGate){
@@ -152,7 +153,10 @@
       const width=this.viewport.clientWidth,height=this.viewport.clientHeight;if(!width||!height)return false;
       const fixed=this.display.mode==='fixed';
       const grid=fixed?fixedLayout(this.chars?.length||1,width,height,this.display.direction):null;
-      const size=fixed?grid.size:Math.max(100,Math.floor(Math.min(width*.74,height*.68,440)));
+      const labelWidth=this.stage.querySelector('.counter')?.offsetWidth||80;
+      const widthLimit=this.display.direction==='vertical'?(width-2*(labelWidth+12))/1.2:(width-32)/1.2;
+      const heightLimit=(height-(this.display.direction==='vertical'?36:60))/1.4;
+      const size=fixed?grid.size:Math.max(24,Math.floor(Math.min(widthLimit,heightLimit,440)));
       if(fixed){
         this.track.style.gridTemplateColumns=`repeat(${grid.cols}, var(--car-size))`;
         this.track.style.gridTemplateRows=`repeat(${grid.rows}, var(--car-size))`;
@@ -241,6 +245,7 @@
       ];
       this.track.style.visibility='';this.viewport.classList.remove('arrival-pending','journey-preparing');this.viewport.classList.add('train-cinematic');
       const animation=this.track.animate(frames,{duration:arrival?2600:2100,easing:'ease-in-out',fill:'forwards'});
+      this.track.style.opacity='';
       this.animation=animation;
       const stopSound=onStart?.(arrival?2600:2100);
       try{await animation.finished;}catch{}
@@ -254,7 +259,7 @@
       }
       return true;
     }
-    async move(delta){
+    async move(delta,onStart){
       if(this.display.mode==='fixed')return;
       await this.cards[delta>0?3:1]?.ready;
       const reduced=this.display.reduced||root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -263,7 +268,8 @@
         {transform:motion(this.display.direction,0)},
         {transform:motion(this.display.direction,-delta*this.size*1.5)}
       ],{duration:850,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
-      this.animation=animation;try{await animation.finished;}catch{}
+      this.animation=animation;const stopSound=onStart?.(850);
+      try{await animation.finished;}catch{}finally{stopSound?.();animation.cancel?.();if(this.animation===animation)this.animation=null;}
     }
   }
   root.JourneyView=JourneyView;root.MonjiTrainColor=trainColor;root.MonjiOrientationMatches=orientationMatches;

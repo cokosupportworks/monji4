@@ -25,7 +25,7 @@ async function run(){
  for(const tab of ['katakana','kanji1','kanji2','numbers']){app.selectCategoryTab(tab);assert.ok(document.getElementById('charGrid').children.length>0,tab+' table is populated');}
  document.getElementById('btnCloseSelect').click();
  for(const[word,color]of [['ぬめ','white'],['あぬ','green'],['ああぬ','blue'],['ああ','red']]){await app.setWord(word);assert.equal(app.trainTheme,color);assert.match(app.journey.cards[2].art.src,new RegExp('-'+color+'\\.svg$'));}
- await app.setWord('あい');spoken.length=0;await finish(app);assert.deepEqual(spoken,[],'no speech for an intermediate character');assert.equal(rails.at(-1),480,'short rail sound replaces spoken praise');assert.equal(app.trainTheme,'green','train color stays fixed during this practice');
+ await app.setWord('あい');spoken.length=0;await finish(app);assert.deepEqual(spoken,[],'no speech for an intermediate character');assert.equal(rails.length,0,'completion itself does not start the rail sound');assert.equal(app.trainTheme,'green','train color stays fixed during this practice');
  await app.travelTo(1);assert.deepEqual(spoken,[],'auto/manual next letter does not speak a new line');await finish(app);assert.deepEqual(spoken,['全部書けました！出発、進行〜']);
  await app.finishPractice();assert.equal(app.journey.viewport.classList.contains('word-finished'),true);
  let finale=app.journey.finale;assert.equal(finale.querySelectorAll('.whole-train-car').length,3,'entire train includes engine and every letter');assert.equal(finale.querySelectorAll('canvas').length,2,'every completed letter uses its own ink');
