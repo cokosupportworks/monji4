@@ -4,6 +4,29 @@
   const strokes=record?.strokes;
   return Array.isArray(strokes)&&strokes.length>0&&Array.from({length:strokes.length},(_,index)=>record.skipped?.[index]===true).every(Boolean);
  }
+ function teacherSummary(settings={}){
+  settings=settings||{};
+  const level={easy:'やさしい',normal:'ふつう',strict:'しっかり'}[settings.level]||'不明';
+  const flag=(value,on='あり',off='なし')=>value===true?on:value===false?off:'不明';
+  const seconds=value=>Number.isFinite(value)&&value>=0?String(value):'不明';
+  const direction=settings.display?.direction==='vertical'?'縦書き':settings.display?.direction==='horizontal'?'横書き':'書字方向：不明';
+  const fields=[`判定：${level}`,`ほたるモード：${flag(settings.hotaru,'ON','OFF')}`,`ほたるON（${seconds(settings.visibleSec)}）秒／OFF（${seconds(settings.hiddenSec)}）秒${settings.hotaru===false?'〈設定値〉':''}`,`印：${flag(settings.showGuide)}`,`マス目：${flag(settings.showGrid)}`,direction];
+  if(settings.hotaru===true&&typeof settings.once==='boolean')fields.push('見本：'+(settings.once?'はじめだけ':'くりかえし'));
+  if(Number.isFinite(settings.params?.dev)&&settings.params.dev>=0)fields.push(`判定許容幅：${settings.params.dev}px`);
+  if(Number.isFinite(settings.params?.maxRatio)&&settings.params.maxRatio>0)fields.push(`塗りつぶし許容：${settings.params.maxRatio}倍`);
+  return fields.join(' ｜ ');
+ }
+ function teacherMetadata(records,word=false){
+  const box=document.createElement('div');box.className='teacher-metadata';box.setAttribute('aria-label','教師向けの練習条件');
+  const caption=document.createElement('strong');caption.className='teacher-condition-title';caption.textContent='教師向け・記録時の設定';box.append(caption);
+  const valid=records.filter(Boolean),groups=new Map();
+  for(const [i,record]of valid.entries()){
+   const text=teacherSummary(record.settings);
+   if(!groups.has(text))groups.set(text,[]);groups.get(text).push(Number.isInteger(record.index)?record.index+1:i+1);
+  }
+  for(const [text,positions]of groups){const row=document.createElement('div');row.className='teacher-condition-row';row.textContent=(word?(groups.size===1?'全記録共通：':positions.join('・')+'文字目：'):'')+text;box.append(row);}
+  return box;
+ }
  function groupWords(records){
   const words=new Map();
   for(const record of records){
@@ -155,9 +178,9 @@
     };requestAnimationFrame(frame);
    };
    const hint=document.createElement('p');hint.className='word-book-hint';hint.textContent='もじを おすと、おおきく みられるよ。うすい はいいろの せんは、おてつだいの おてほんだよ。';
-   controls.append(replay,stop);this.container.append(status,sheet,controls,hint);
+   controls.append(replay,stop);this.container.append(status,sheet,controls,hint,teacherMetadata(attempt.slots,true));
   }
  }
- root.MonjiWords={isFullyAssisted,groupWords,paintRecord,WordAlbum,rubyText,childDate};
+ root.MonjiWords={teacherSummary,teacherMetadata,isFullyAssisted,groupWords,paintRecord,WordAlbum,rubyText,childDate};
  if(typeof module!=='undefined')module.exports=root.MonjiWords;
 })(globalThis);

@@ -31,7 +31,7 @@ let source=fs.readFileSync(path.join(appDirectory, 'app.js'),'utf8');
 source=source.slice(0,source.indexOf('    let booting = false;'))+' globalThis.testExports={App,loader,speech}; })();';
 vm.runInNewContext(source,context);
 const {App,loader,speech}=context.testExports; speech.enabled=false;
-function app(){const a=Object.create(App.prototype);Object.assign(a,{loadGeneration:0,word:'あい',chars:['あ','い'],cIdx:0,sessions:[],loadedIndex:null,strokes:[],userStrokes:[],skipped:[],drawing:[],W:400,H:400,hotaru:{enabled:false},hanamaru:element(),
+function app(){const a=Object.create(App.prototype);Object.assign(a,{level:'normal',params:{normal},loadGeneration:0,word:'あい',chars:['あ','い'],cIdx:0,sessions:[],loadedIndex:null,strokes:[],userStrokes:[],skipped:[],drawing:[],W:400,H:400,hotaru:{enabled:false},hanamaru:element(),
   archive:{saveState:async()=>{},put:async()=>{}},unsavedRecords:{},baseOpacity:1,
   render(){},renderPills(){},stopAnim(){},stopHotaru(){},setNotice(text){this.notice=text;},
   saveDraft(){this.rememberCurrent();},storageStatus(ok){this.saved=ok;},saveHistoryRecord(){this.historyCount=(this.historyCount||0)+1;}});return a;}

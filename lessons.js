@@ -17,7 +17,7 @@
    this.list=get('savedLessonList');this.trash=get('archivedLessonList');
    this.save.onclick=()=>this.saveWord({id:this.editingId,word:this.word.value,label:this.label.value},false);
    this.start.onclick=()=>{
-    try{const data=normalize({word:this.word.value});if(this.options.start(data.word)===false)this.say('いまの もじが おちついてから、もういちど おしてね。');}
+    try{const data=normalize({word:this.word.value});if(!this.checkStartOrientation(this.start))return;if(this.options.start(data.word)===false)this.say('いまの もじが おちついてから、もういちど おしてね。');}
     catch(error){this.say(error.childMessage||'もじを たしかめてね。');}
    };
    this.current.onclick=()=>this.saveWord({word:this.options.currentWord()});
@@ -27,6 +27,7 @@
    this.queueStart.onclick=()=>{
     try {const pending=this.word.value.trim()?normalize({word:this.word.value}).word:null;const words=[...this.queue,...(pending?[pending]:[])];
      if(!words.length)throw invalid('もじを えらんで おだいを つくってね。');if(words.length>20)throw invalid('おだいは 20こまで ならべられるよ。');
+     if(!this.checkStartOrientation(this.queueStart))return;
      if(this.options.startSequence?.(words)===false)this.say('いまの もじが おちついてから、おしてね。');
     }catch(error){this.say(error.childMessage||'おだいを たしかめてね。');}
    };
@@ -37,8 +38,12 @@
    get('btnDraftClear').onclick=()=>{this.word.value='';this.syncDraft();};
    get('btnQueueDraft').onclick=()=>{try{const data=normalize({word:this.word.value});if(this.addQueue(data.word)){this.clearEditor();this.say('おだいを ならべたよ。つぎの おだいを つくれるよ。');}}catch(error){this.say(error.childMessage);}};
    this.word.oninput=()=>{this.syncDraft();try{if(this.word.value)normalize({word:this.word.value});this.say('');}catch(error){this.say(error.childMessage);}};this.word.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();this.mode==='single'?this.start.click():this.queueStart.click();}};
-   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.isComposing&&get('modalSelect').classList.contains('open'))get('btnCloseSelect').click();});
+   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.isComposing&&!document.querySelector('#orientationPopup.open')&&get('modalSelect').classList.contains('open'))get('btnCloseSelect').click();});
    this.drawQueue();this.setMode('single');this.setSource('keys');
+  }
+  checkStartOrientation(button){
+   if(this.options.canStart?.()!==false)return true;
+   this.options.onOrientationRequired?.(button);return false;
   }
   setSource(source){
    this.source=source;document.getElementById('presetPanel').hidden=source!=='keys';document.getElementById('savedLessonsPanel').hidden=source!=='saved';
@@ -60,11 +65,10 @@
    document.getElementById('draftCount').textContent=chars.length+' / 20もじ';
    let valid=true;try{normalize({word:this.word.value});}catch{valid=false;}
    document.getElementById('draftTitle').textContent=this.mode==='sequence'?(this.queue.length+1)+'こめの おだい':'いま つくっている おだい';
-   const canStart=this.options.canStart?.()!==false;
-   this.start.disabled=this.busy||!valid||!canStart;document.getElementById('btnQueueDraft').disabled=this.busy||!valid||this.queue.length>=20;
+   this.start.disabled=this.busy||!valid;document.getElementById('btnQueueDraft').disabled=this.busy||!valid||this.queue.length>=20;
    document.getElementById('btnDraftBackspace').disabled=!chars.length;document.getElementById('btnDraftClear').disabled=!chars.length;
    const count=this.queue.length+(this.word.value.trim()?1:0);
-   this.queueStart.disabled=this.busy||!canStart||count===0||count>20||!!this.word.value.trim()&&!valid;
+   this.queueStart.disabled=this.busy||count===0||count>20||!!this.word.value.trim()&&!valid;
    this.queueStart.textContent=count?count+'この おだいで はじめる':'ならべた おだいで はじめる';
   }
   addQueue(word){if(this.queue.length>=20){this.say('おだいは 20こまで ならべられるよ。');return false;}this.queue.push(word);this.drawQueue();return true;}

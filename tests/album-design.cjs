@@ -13,6 +13,7 @@ vm.createContext(context);for(const file of ['core.js','journey.js','word-archiv
 let source=fs.readFileSync(path.join(base,'app.js'),'utf8');source=source.slice(0,source.indexOf('    let booting = false;'))+' globalThis.testExports={App,loader}; })();';
 vm.runInContext(source,context);context.testExports.loader.load=async()=>['M20,50 L90,50'];
 function readable(node,inRuby=false){
+ if(node.classList.contains('teacher-metadata'))return; // Explicitly teacher-facing annotations requested by the user.
  const ruby=node.tagName==='RUBY';
  if(ruby){const reading=node.querySelector('rt');assert.ok(reading&&reading.textContent,'ruby has an actual reading');}
  if(!inRuby&&!ruby)assert.ok(!/[\u3400-\u9fff]/u.test(node.textContent),'unread kanji in static album copy: '+node.textContent);

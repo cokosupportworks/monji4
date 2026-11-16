@@ -92,10 +92,23 @@
 
     class SpeechHelper {
       constructor(){
-        this.enabled=true;this.current=null;this.voices=[];this.loadVoices();
+        this.enabled=true;this.current=null;this.voices=[];this.voiceId='';this.pitch=1.25;this.loadVoices();
         window.speechSynthesis?.addEventListener?.('voiceschanged',()=>this.loadVoices());
       }
-      loadVoices(){try{this.voices=window.speechSynthesis?.getVoices?.()||[];}catch{this.voices=[];}}
+      loadVoices(){try{this.voices=window.speechSynthesis?.getVoices?.()||[];}catch{this.voices=[];}const signature=this.voices.map(voice=>(voice.voiceURI||voice.name)+'|'+voice.lang+'|'+voice.name).join('\n');if(signature!==this.loadedVoiceSignature){this.loadedVoiceSignature=signature;this.onVoicesChanged?.();}}
+      id(voice){return voice.voiceURI||voice.name+'|'+voice.lang;}
+      isMale(voice){return /(?:oto[ -]?ya|hattori|男性|男声|\bmale\b)/i.test(voice.name||'');}
+      femaleRank(voice){
+        const name=voice.name||'';
+        return /o[- ]?ren/i.test(name)?0:/kyoko|きょうこ|キョウコ/i.test(name)?1:/女性|女声|\bfemale\b/i.test(name)?2:100;
+      }
+      candidates(){return this.voices.filter(voice=>/^ja(?:-|$)/i.test(voice.lang)&&!this.isMale(voice));}
+      selectedVoice(){
+        const voices=this.candidates();const chosen=voices.find(voice=>this.id(voice)===this.voiceId);if(chosen)return chosen;
+        return voices.filter(voice=>this.femaleRank(voice)<100).sort((a,b)=>this.femaleRank(a)-this.femaleRank(b)||Number(/premium|enhanced|拡張|高品質/i.test(b.name))-Number(/premium|enhanced|拡張|高品質/i.test(a.name))||Number(!!b.localService)-Number(!!a.localService))[0]||null;
+      }
+      configure(saved={}){this.voiceId=typeof saved.voiceId==='string'?saved.voiceId:'';this.pitch=Number.isFinite(saved.pitch)?Math.max(1,Math.min(1.5,saved.pitch)):1.25;}
+      settings(){return{voiceId:this.voiceId,pitch:this.pitch};}
       unlock(){this.loadVoices();if(window.speechSynthesis?.paused)window.speechSynthesis.resume();}
       cancel(){this.current=null;try{window.speechSynthesis?.cancel();}catch{}}
       speak(text,rate=.85){
@@ -104,13 +117,13 @@
         try{
           if(this.current||synth.speaking||synth.pending)this.cancel();
           this.unlock();const utterance=new Utterance(text);
-          utterance.lang='ja-JP';utterance.rate=rate;utterance.pitch=1.1;utterance.volume=1;
-          const japanese=this.voices.filter(voice=>/^ja(?:-|$)/i.test(voice.lang));
-          const voice=japanese.find(voice=>voice.localService)||japanese[0];if(voice)utterance.voice=voice;
+          const voice=this.selectedVoice();
+          if(!voice){this.lastError='voice-selection-required';this.onVoicesChanged?.();return false;}
+          utterance.lang='ja-JP';utterance.rate=rate;utterance.pitch=this.pitch;utterance.volume=1;utterance.voice=voice;
           this.current=utterance;
           utterance.onend=()=>{if(this.current===utterance)this.current=null;};
           utterance.onerror=event=>{this.lastError=event.error;if(this.current===utterance)this.current=null;};
-          synth.speak(utterance);
+          synth.speak(utterance);return true;
         }catch(error){this.lastError=error;}
       }
     }
@@ -304,6 +317,7 @@
         if(globalThis.MonjiLessons)this.lessonLibrary=new MonjiLessons.LessonLibrary({
           archive:this.archive,currentWord:()=>this.word,
           canStart:()=>this.orientationReady(),
+          onOrientationRequired:button=>this.showOrientationPrompt(button),
           startSequence:words=>this.startSequence(words),
           start:word=>{
             if(this.finishing||this.transitioning||this.isDown||!this.orientationReady())return false;
@@ -416,6 +430,27 @@
         if (normalized) this.userStrokes = MonjiCore.unpack(normalized, w, h);
       }
 
+      showOrientationPrompt(returnFocus){
+        if(!this.orientationPopup){
+          const popup=document.createElement('div');popup.id='orientationPopup';popup.className='modal-overlay orientation-popup';
+          popup.setAttribute('role','alertdialog');popup.setAttribute('aria-modal','true');popup.setAttribute('aria-labelledby','orientationPopupTitle');popup.setAttribute('aria-describedby','orientationPopupMessage');
+          const card=document.createElement('div');card.className='modal';
+          const title=document.createElement('h2');title.id='orientationPopupTitle';title.textContent='がめんの むきを かえてね';
+          const message=document.createElement('p');message.id='orientationPopupMessage';
+          const okay=document.createElement('button');okay.className='btn btn-primary';okay.textContent='わかった';
+          const close=()=>{popup.classList.remove('open');this.orientationReturnFocus?.focus?.();};
+          okay.onclick=close;
+          popup.addEventListener('keydown',event=>{if(event.key==='Tab'){event.preventDefault();okay.focus?.();}});
+          document.addEventListener('keydown',event=>{if(event.key==='Escape'&&popup.classList.contains('open')){event.preventDefault();close();}});
+          card.append(title,message,okay);popup.append(card);document.querySelector('body').append(popup);
+          this.orientationPopup=popup;this.orientationPopupMessage=message;this.orientationPopupOkay=okay;
+        }
+        this.orientationReturnFocus=returnFocus||document.activeElement;
+        this.orientationPopupMessage.textContent=this.display.direction==='vertical'
+          ?'たてがきの おだいだよ。\nがめんを たてにしてね。\nそのあと「はじめる」を おしてね。'
+          :'よこがきの おだいだよ。\nがめんを よこにしてね。\nそのあと「はじめる」を おしてね。';
+        this.orientationPopup.classList.add('open');this.orientationPopupOkay.focus?.();
+      }
       orientationReady(){return globalThis.MonjiOrientationMatches(this.display?.direction||'vertical',window.innerWidth,window.innerHeight);}
       updateOrientation(){
         const ready=this.orientationReady();this.journey?.setOrientationBlocked(!!this.word&&!ready,this.display?.direction||'vertical');
@@ -936,6 +971,25 @@
 
 
 
+      renderVoiceSettings(){
+        const select=document.getElementById('hotarukoVoice');if(!select)return;
+        const voices=speech.candidates(),signature=voices.map(voice=>speech.id(voice)).join('\n');
+        if(signature!==this.voiceListSignature){
+          this.voiceListSignature=signature;select.replaceChildren();
+          const automatic=document.createElement('option');automatic.value='';automatic.textContent='おまかせ（女性の声を優先）';select.append(automatic);
+          for(const voice of voices){const option=document.createElement('option');option.value=speech.id(voice);option.textContent=voice.name+(speech.femaleRank(voice)<100?'（女性の声の候補）':'（試聴して確認）');select.append(option);}
+        }
+        for(const option of Array.from(select.children))if(option.dataset.unavailable==='true')option.remove();
+        if(speech.voiceId&&!voices.some(voice=>speech.id(voice)===speech.voiceId)){
+          const missing=document.createElement('option');missing.value=speech.voiceId;missing.textContent='保存した声は、この端末では使えません';missing.disabled=true;missing.dataset.unavailable='true';
+          if(!Array.from(select.children).some(option=>option.value===speech.voiceId))select.append(missing);
+        }
+        select.value=speech.voiceId;
+        document.getElementById('hotarukoPitch').value=String(speech.pitch);
+        document.getElementById('hotarukoPitchValue').textContent=speech.pitch.toFixed(2);
+        const chosen=speech.selectedVoice();
+        document.getElementById('hotarukoVoiceStatus').textContent=chosen?'使用する声：'+chosen.name+'。「こえを きく」で確認できます。':'女性の声の候補が見つかりません。利用できる声を選んで試聴してください。端末に女性の日本語音声を追加すると、選べる場合があります。';
+      }
       updateSoundButton() {
         const button=document.getElementById('btnSound');button.textContent=sound.on?'♪ おと':'おと なし';
         button.setAttribute('aria-label',sound.on?'おとを けす':'おとを だす');button.setAttribute('aria-pressed',String(sound.on));
@@ -966,6 +1020,7 @@
         this.showGuide = saved.showGuide !== false;
         this.showGrid = saved.showGrid !== false;
         sound.on = saved.sound !== false; speech.enabled = sound.on;
+        speech.configure(saved.speech||{});this.renderVoiceSettings();speech.onVoicesChanged=()=>this.renderVoiceSettings();
         if (['easy','normal','strict'].includes(saved.level)) this.level = saved.level;
         if (saved.params) for (const level of ['easy','normal','strict']) {
           const p = saved.params[level];
@@ -995,7 +1050,7 @@
       saveSettings() {
         const settings = { baseOpacity: this.baseOpacity, level: this.level, params: this.params,
           hotaru: { enabled: this.hotaru.enabled, once: !!this.hotaru.once, visibleSec: this.hotaru.visibleSec, hiddenSec: this.hotaru.hiddenSec },
-          showGuide: this.showGuide, showGrid: this.showGrid, sound: sound.on, requests: this.requests, display: this.display };
+          showGuide: this.showGuide, showGrid: this.showGrid, sound: sound.on, speech:speech.settings(), requests: this.requests, display: this.display };
         this.archive.saveState('settings', settings).catch(() => this.storageStatus(false));
       }
 
@@ -1107,6 +1162,12 @@
         };
         document.getElementById('btnNext').onclick = () => {
           this.travelTo(this.cIdx + 1);
+        };
+        document.getElementById('hotarukoVoice').onchange=event=>{speech.voiceId=event.target.value;speech.cancel();this.renderVoiceSettings();this.saveSettings();};
+        document.getElementById('hotarukoPitch').oninput=event=>{speech.pitch=Math.max(1,Math.min(1.5,Number(event.target.value)||1.25));document.getElementById('hotarukoPitchValue').textContent=speech.pitch.toFixed(2);};
+        document.getElementById('btnPreviewHotarukoVoice').onclick=()=>{
+          if(!sound.on){document.getElementById('hotarukoVoiceStatus').textContent='「おと」をオンにしてから、こえを きいてね。';return;}
+          speech.speak('ほたるこだよ。いっしょに、もじを かこうね。',.9);
         };
         document.getElementById('chkOnce').onchange = e => {
           this.hotaru.once = e.target.checked;
@@ -1309,7 +1370,7 @@
           };
           const message=document.createElement('p');message.className='album-inline-status';message.setAttribute('role','status');
           const controls=document.createElement('div');controls.className='album-piece-controls';controls.append(replay,stop,star);
-          detail.append(title,context,canvas,controls,message);draw();
+          detail.append(title,context,MonjiWords.teacherMetadata([record]),canvas,controls,message);draw();
         };
         const displayedIds=new Set();
         const addCard=record=>{
@@ -1403,9 +1464,9 @@
         const record = { id: entry.id, date: entry.date, word: this.word, index, char: ch,
           practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt,
           strokes: entry.strokes, skipped: entry.skipped, assisted: entry.skipped.some(Boolean),
-          settings: { display: { ...this.display }, level: this.level, hotaru: this.hotaru.enabled, once: !!this.hotaru.once,
+          settings: { display: { ...this.display }, level: this.level, showGuide:!!this.showGuide, showGrid:!!this.showGrid, params:{...this.params[this.level]}, hotaru: this.hotaru.enabled, once: !!this.hotaru.once,
             visibleSec: this.hotaru.visibleSec, hiddenSec: this.hotaru.hiddenSec, width: this.W, height: this.H },
-          formatVersion: 1, favorite: false, source: globalThis.MonjiBundledStrokes?.characters?.[ch]
+          formatVersion: 2, favorite: false, source: globalThis.MonjiBundledStrokes?.characters?.[ch]
             ? 'KanjiVG bundled snapshot ' + globalThis.MonjiBundledStrokes.snapshot : 'KanjiVG (remote/cache)' };
         if (!entry.archived) {
           try {

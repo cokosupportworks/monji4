@@ -58,3 +58,15 @@
  .welcome-message p {font-size:22px;line-height:1.6;}
  .welcome-message .btn {min-height:36px;font-size:15px;}
 }
+
+/* A start attempt explains orientation at the point of action. */
+#orientationPopup {z-index:250;background:rgba(30,44,33,.65);padding:12px;}
+#orientationPopup>.modal {display:flex;flex-direction:column;gap:18px;max-width:520px;width:100%;padding:26px;max-height:calc(100dvh - 24px);overflow-y:auto;background:#fff9e5;border:3px solid #c7b66b;}
+#orientationPopup h2 {font-size:24px;line-height:1.5;color:#3d5a42;}
+#orientationPopup p {white-space:pre-line;font-size:22px;font-weight:700;line-height:1.9;color:#3d5a42;}
+#orientationPopup .btn {align-self:center;min-height:48px;min-width:150px;font-size:19px;padding:10px 22px;}
+@media(max-height:500px){#orientationPopup>.modal{padding:16px;gap:10px;}#orientationPopup h2{font-size:19px;}#orientationPopup p{font-size:18px;line-height:1.6;}}
+
+.hotaruko-voice-settings p {font-size:14px;line-height:1.7;}
+.hotaruko-voice-settings select {max-width:100%;min-width:0;}
+#btnPreviewHotarukoVoice {min-height:44px;}
