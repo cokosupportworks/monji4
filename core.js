@@ -79,8 +79,24 @@
       return false;
     };
   }
+  // The introductory level checks only the broad shape, independent of position,
+  // direction and writing size. It never changes the ink that is saved.
+  function evaluateRelaxed(target,input){
+    if(!input||input.length<2||measuredLength(input)<1)return {pass:false,msg:''};
+    const shape=points=>{
+      let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+      for(const p of points){minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);}
+      const size=Math.max(maxX-minX,maxY-minY,1),cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+      const points48=resample(points,Math.max(length(points)/47,.001));
+      return points48.map(p=>({x:(p.x-cx)/size,y:(p.y-cy)/size}));
+    };
+    const model=shape(target),user=shape(input),nearModel=envelope(model,.23),nearUser=envelope(user,.23);
+    return user.filter(nearModel).length/user.length>=.60&&model.filter(nearUser).length/model.length>=.55
+      ?{pass:true,msg:'かけたね'}:{pass:false,msg:'せんの かたちを たしかめてみよう'};
+  }
   function evaluate(target, input, cfg) {
     if (target.length < 2) return { pass: false, msg: 'おてほんを もういちど ひらいてね' };
+    if(cfg.relaxed)return evaluateRelaxed(target,input);
     if (!input || input.length < 2 || measuredLength(input) < 1) return { pass: false, msg: 'すこし せんを かいてみよう' };
     const start = input[0], end = input[input.length - 1];
     const a = target[0], b = target[target.length - 1];

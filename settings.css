@@ -1,0 +1,19 @@
+/* Adult controls follow reading order: hotaru, judgement, train, requests. */
+#modalSettings>.modal {width:min(1120px,96vw);max-width:1120px;max-height:96dvh;}
+#modalSettings .modal-head {padding:12px 18px;}
+#modalSettings .modal-body {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;padding:12px 18px;align-items:start;font-size:13px;}
+#modalSettings .modal-body>div,#modalSettings fieldset {min-width:0;margin:0!important;}
+#modalSettings .request-settings,#hotaruSettings {padding:9px 12px!important;border-radius:12px;gap:4px;}
+#modalSettings .request-settings label {margin:4px 0;gap:6px;font-size:13px;}
+#modalSettings .request-settings small {font-size:11px;line-height:1.45;}
+#modalSettings .request-settings legend {font-size:14px;}
+#modalSettings .slider {width:100%;height:18px;margin:2px 0;}
+#modalSettings .btn {min-height:34px;padding:5px 10px;font-size:13px;}
+#judgementSettings>div {margin:6px 0;}
+#judgementSettings .badge {font-size:12px;padding:3px 8px;margin-bottom:6px;}
+#modalSettings select {font-size:13px;padding:4px;max-width:100%;}
+#modalSettings .grownup-records {grid-column:1/-1;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:6px 10px;border-top:1px solid #d5ded4;}
+#modalSettings .grownup-records p {flex:1;min-width:200px;margin:0;font-size:11px;}
+#modalSettings .grownup-records small {font-size:10px;}
+#modalSettings .opacity-settings {grid-column:1/-1;}
+@media(max-width:650px){#modalSettings .modal-body{grid-template-columns:minmax(0,1fr);padding:10px;gap:10px;}#modalSettings>.modal{max-height:96dvh;}}

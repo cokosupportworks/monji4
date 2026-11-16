@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
+<html lang="ja"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,20 +10,21 @@
 
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="journey.css">
-  <link rel="stylesheet" href="album.css">
-  <link rel="stylesheet" href="practice.css">
-  <link rel="stylesheet" href="hotaruko.css">
-  <link rel="stylesheet" href="responsive.css">
-  <link rel="stylesheet" href="tools.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=0.22.0">
+  <link rel="stylesheet" href="journey.css?v=0.22.0">
+  <link rel="stylesheet" href="album.css?v=0.22.0">
+  <link rel="stylesheet" href="practice.css?v=0.22.0">
+  <link rel="stylesheet" href="hotaruko.css?v=0.22.0">
+  <link rel="stylesheet" href="responsive.css?v=0.22.0">
+  <link rel="stylesheet" href="tools.css?v=0.22.0">
+  <link rel="stylesheet" href="settings.css?v=0.22.0">
 </head>
 <body class="no-task">
 
   <svg id="svgHelper" style="position:fixed; top:-9999px; left:-9999px; width:109px; height:109px; visibility:hidden; pointer-events:none;" viewBox="0 0 109 109">
-    <path id="svgHelperPath" d="" />
+    <path id="svgHelperPath" d=""></path>
   </svg>
 
   <header>
@@ -34,7 +34,7 @@
     <div class="actions">
       <button class="btn btn-record" id="btnOpenRecord">さくひんちょう</button>
       <button class="btn btn-primary" id="btnOpenSelect">もじを えらぶ</button>
-      <button class="btn" id="btnTools" aria-label="れんしゅうの どうぐを ひらく" aria-haspopup="dialog" aria-expanded="false" aria-controls="modalTools" disabled>どうぐ</button>
+      <button class="btn" id="btnTools" aria-label="れんしゅうの どうぐを ひらく" aria-haspopup="dialog" aria-expanded="false" aria-controls="modalTools" disabled="">どうぐ</button>
       <button class="btn settings-gear" id="btnSettings" aria-label="おとなの せってい" title="おとなの せってい"><img src="assets/gear.svg" alt="" width="28" height="28"></button>
     </div>
     <div class="word-overview"><span id="wordProgress" class="word-progress" role="status"></span><div class="word-pills" id="wordPills" aria-label="おだいの ますと、かいた もじ"></div></div>
@@ -54,7 +54,7 @@
         <canvas id="inkCanvas" aria-hidden="true"></canvas>
         <canvas id="drawCanvas"></canvas>
         <canvas id="animCanvas"></canvas>
-        <div id="loadMessage" role="status"><p id="loadText">おてほんを じゅんびしているよ…</p><button class="btn" id="btnRetry" hidden>もういちど ひらく</button></div>
+        <div id="loadMessage" role="status"><p id="loadText">おてほんを じゅんびしているよ…</p><button class="btn" id="btnRetry" hidden="">もういちど ひらく</button></div>
         <div class="toast" id="toast"></div>
       </section>
 
@@ -66,7 +66,7 @@
           <small>うんてんせき</small>
         </div>
       </div>
-      <div id="hanamaru" hidden aria-hidden="true"></div>
+      <div id="hanamaru" hidden="" aria-hidden="true"></div>
     </div>
 
   </main>
@@ -102,32 +102,32 @@
         <div class="char-grid" id="charGrid"></div>
 
         </section>
-        <section class="saved-lessons-section" id="savedLessonsPanel" hidden>
+        <section class="saved-lessons-section" id="savedLessonsPanel" hidden="">
           <div class="lesson-section-head"><h3>とうろくした おだい</h3></div>
           <p>えらぶと、したの おだいと いれかわるよ。</p>
           <div id="savedLessonList" class="saved-lesson-list"></div>
           <details class="archived-lessons"><summary>しまった おだい</summary><div id="archivedLessonList" class="saved-lesson-list"></div></details>
         </section>
-        <section class="lesson-queue-section" id="lessonQueuePanel" hidden>
+        <section class="lesson-queue-section" id="lessonQueuePanel" hidden="">
           <h3>おだいの じゅんばん</h3><p>ひとつの おだいを かきおえたら、つぎの おだいへ すすむよ。</p>
           <ol id="lessonQueueList"></ol><button class="btn" id="btnClearLessonQueue">ならびを けす</button>
         </section>
         <details class="lesson-registration" id="lessonRegistration"><summary>おだいを とうろく・なおす</summary>
           <h3 id="lessonEditorTitle">いま つくっている おだいを のこす</h3>
           <label>なまえ（つけなくても いいよ）<input class="text-input" id="customLabel" maxlength="32" placeholder="たとえば：どうぶつ"></label>
-          <div class="lesson-form-actions"><button class="btn" id="btnSaveLesson">とうろくする</button><button class="btn" id="btnCancelLessonEdit" hidden>なおすのを やめる</button><button class="btn" id="btnSaveCurrentLesson">れんしゅうちゅうの おだいを のこす</button></div>
+          <div class="lesson-form-actions"><button class="btn" id="btnSaveLesson">とうろくする</button><button class="btn" id="btnCancelLessonEdit" hidden="">なおすのを やめる</button><button class="btn" id="btnSaveCurrentLesson">れんしゅうちゅうの おだいを のこす</button></div>
         </details>
       </div>
       <div class="selection-composer">
-        <p id="selectionOrientationHint" class="orientation-hint" role="status" hidden></p>
+        <p id="selectionOrientationHint" class="orientation-hint" role="status" hidden=""></p>
         <div class="practice-mode-tabs" aria-label="れんしゅうの しかた"><button class="btn" id="btnSingleMode" aria-pressed="true">ひとつの おだい</button><button class="btn" id="btnSequenceMode" aria-pressed="false">おだいを ならべる</button></div>
         <div class="draft-heading"><strong id="draftTitle">いま つくっている おだい</strong><span id="draftCount">0 / 20もじ</span></div>
         <div id="lessonDraftPreview" class="lesson-draft-preview" aria-label="つくっている おだい"></div>
-        <div class="draft-tools"><button class="btn" id="btnDraftBackspace">１もじ けす</button><button class="btn" id="btnDraftClear">ぜんぶ けす</button><button class="btn" id="btnQueueDraft" hidden>この おだいを ならべて、つぎを つくる</button></div>
+        <div class="draft-tools"><button class="btn" id="btnDraftBackspace">１もじ けす</button><button class="btn" id="btnDraftClear">ぜんぶ けす</button><button class="btn" id="btnQueueDraft" hidden="">この おだいを ならべて、つぎを つくる</button></div>
         <details class="manual-entry"><summary>キーボードで いれる</summary><label>もじや ことば<input type="text" class="text-input" id="customInput" placeholder="20もじまで" maxlength="40" autocomplete="off"></label></details>
         <p id="lessonStatus" class="lesson-status" role="status"></p>
-        <button class="btn btn-primary selection-start" id="btnApplyCustom" disabled>この おだいで はじめる</button>
-        <button class="btn btn-primary selection-start" id="btnStartLessonQueue" hidden disabled>ならべた おだいで はじめる</button>
+        <button class="btn btn-primary selection-start" id="btnApplyCustom" disabled="">この おだいで はじめる</button>
+        <button class="btn btn-primary selection-start" id="btnStartLessonQueue" hidden="" disabled="">ならべた おだいで はじめる</button>
       </div>
     </div>
   </div>
@@ -141,13 +141,13 @@
 
   <!-- 3. Settings Modal -->
   <div class="modal-overlay" id="modalSettings">
-    <div class="modal" style="max-width:480px;">
+    <div class="modal">
       <div class="modal-head">
         <span>おとなのせってい</span>
         <button class="btn" id="btnCloseSettings">とじる</button>
       </div>
       <div class="modal-body">
-        <div id="hotaruSettings" style="background: #f1f5f9; padding: 12px; border-radius: 12px; margin-top: 8px;">
+        <div id="hotaruSettings" style="background: rgb(241, 245, 249); padding: 12px; border-radius: 12px; margin-top: 0px;">
           <label style="display:flex; align-items:center; gap:8px; font-weight:900; cursor:pointer;">
             <input type="checkbox" id="chkHotaru" style="width:20px; height:20px;">
             ✨ ほたるモード（未記入のお手本全体が消えます）
@@ -162,30 +162,37 @@
           </div>
           <input type="range" class="slider" id="sldHotaruHid" min="5" max="100" value="10">
           <label style="display:flex;gap:8px;align-items:center;margin-top:16px"><input type="checkbox" id="chkOnce"> はじめだけ見本を表示する</label>
-        </div>
-        <fieldset class="request-settings hotaruko-voice-settings"><legend>ほたるこちゃんの声</legend>
-          <p>女の子の声に合う音声を選び、少し高めの声で話します。</p>
-          <label>使う声<select id="hotarukoVoice"><option value="">おまかせ（女性の声を優先）</option></select></label>
-          <label>こえの たかさ <span id="hotarukoPitchValue">1.25</span><input type="range" class="slider" id="hotarukoPitch" min="1" max="1.5" step="0.05" value="1.25"></label>
-          <button class="btn" id="btnPreviewHotarukoVoice">こえを きく</button><p id="hotarukoVoiceStatus" role="status"></p>
-        </fieldset>
-        <div class="grownup-records"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作⑳</small></div>
-        <details class="diagnostic-panel"><summary>描画の動作確認（支援者向け）</summary>
-          <p>「ひ・ぬ・め・ね」など18文字の実データで、この端末の処理時間を測ります。練習の筆跡・成績は変更しません。</p>
-          <div class="diagnostic-actions"><button class="btn" id="btnRunDiagnostics">18文字を検査する</button><button class="btn" id="btnStopDiagnostics" disabled>中止</button><button class="btn" id="btnExportDiagnostics" disabled>結果を書き出す</button><button class="btn" id="btnPracticeReported">ひ・ぬ・め・ねを練習する</button></div>
-          <p id="diagnosticStatus" role="status">検査はまだ実行していません。</p>
-          <div class="diagnostic-table"><table><thead><tr><th>文字</th><th>画数</th><th>見本準備<br>ms</th><th>描画命令<br>ms</th><th>判定最長<br>ms</th><th>結果</th></tr></thead><tbody id="diagnosticRows"></tbody></table></div>
-          <small>自動検査の処理時間です。描画命令の送信完了までを測り、画面への表示遅延は測りません。見本準備はキャッシュ利用を含み、再実行では短くなる場合があります。ペンの追従は実際に書いて確認してください。結果は端末内に表示し、自動送信しません。</small>
-        </details>
-        <fieldset class="request-settings"><legend>文字の列と電車</legend>
+        </div><fieldset id="judgementSettings" class="request-settings" style="margin-top: 0px;"><legend>判定の厳しさ</legend><div>
+          
+          <div class="badge" id="badgeStrict" title="判定変更">判定: ふつう</div>
+          <div style="display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px;"><button class="btn set-strict" data-level="relaxed">げきあま</button>
+            <button class="btn set-strict" data-level="easy">やさしい</button>
+            <button class="btn set-strict btn-primary" data-level="normal">ふつう</button>
+            <button class="btn set-strict" data-level="strict">しっかり</button>
+          </div>
+        </div><div>
+          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-bottom:4px;">
+            <span>線のブレ許容幅</span><span id="lblTol">26px</span>
+          </div>
+          <input type="range" class="slider" id="sldTol" min="14" max="46" value="26">
+        </div><div>
+          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-bottom:4px;">
+            <span>塗りつぶし・書き殴り検知</span><span id="lblFill">1.6倍まで</span>
+          </div>
+          <input type="range" class="slider" id="sldFill" min="12" max="25" value="16">
+        </div></fieldset>
+        
+        
+        
+        <fieldset class="request-settings" style="margin-top: 0px;"><legend>文字の列と電車</legend>
           <label>表示方式 <select id="journey-mode"><option value="flow">１文字ずつ流れる</option><option value="fixed">全文字を固定表示して書く</option></select></label>
           <label>文字の方向 <select id="journey-direction"><option value="vertical">縦書き・真上から見た車両</option><option value="horizontal">横書き・横から見た車両</option></select></label>
-          <label><input type="checkbox" id="journey-train" checked> 車両と線路を表示する</label>
-          <label><input type="checkbox" id="journey-auto" checked> 書けたら次の文字へ進む</label>
+          <label><input type="checkbox" id="journey-train" checked=""> 車両と線路を表示する</label>
+          <label><input type="checkbox" id="journey-auto" checked=""> 書けたら次の文字へ進む</label>
           <label><input type="checkbox" id="journey-reduced"> 移動のアニメーションを控える</label>
           <small>流れる表示は１文字ごとに停車。全体固定では文字数に合わせて枠を小さくします。</small>
         </fieldset>
-        <fieldset class="request-settings"><legend>ほたるこちゃんの おねがい</legend>
+        <fieldset class="request-settings" style="margin-top: 0px;"><legend>ほたるこちゃんの おねがい</legend>
           <label><input type="checkbox" id="request-speed"> 速すぎるときに声をかける</label>
           <label><input type="checkbox" id="request-pause"> ペンをつけたまま止まったときに声をかける</label>
           <label><input type="checkbox" id="request-voice"> おねがいを音声でも伝える</label>
@@ -193,46 +200,22 @@
           <label>速さの基準 <select id="request-speed-limit"><option value="1.2">ゆっくり</option><option value="1.8">ふつう</option><option value="2.6">速めでもよい</option></select></label>
           <small>手を離して考えている間は催促しません。同じ声かけは15秒以上あけます。</small>
         </fieldset>
-        <div>
-          <label style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">判定の厳しさ</label>
-          <div class="badge" id="badgeStrict" title="判定変更">判定: ふつう</div>
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
-            <button class="btn set-strict" data-level="easy">やさしい</button>
-            <button class="btn set-strict btn-primary" data-level="normal">ふつう</button>
-            <button class="btn set-strict" data-level="strict">しっかり</button>
-          </div>
-        </div>
-        <div>
-          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-bottom:4px;">
-            <span>線のブレ許容幅</span><span id="lblTol">26px</span>
-          </div>
-          <input type="range" class="slider" id="sldTol" min="14" max="46" value="26">
-        </div>
-        <div>
-          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-bottom:4px;">
-            <span>塗りつぶし・書き殴り検知</span><span id="lblFill">1.6倍まで</span>
-          </div>
-          <input type="range" class="slider" id="sldFill" min="12" max="25" value="16">
-        </div>
-        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 8px 0;">
-        <div>
+        
+        
+        
+        
+        <div class="opacity-settings" style="margin-top: 0px;">
           <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-bottom:4px;">
             <span>お手本線の濃さ</span><span id="lblOpac">100%</span>
           </div>
           <input type="range" class="slider" id="sldOpac" min="10" max="100" value="100">
         </div>
 
-      </div>
+      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作㉒</small></div></div>
     </div>
   </div>
 
-<script src="stroke-data.js"></script>
-<script src="core.js"></script>
-<script src="lessons.js"></script>
-<script src="archive.js"></script>
-<script src="journey.js"></script>
-<script src="word-archive.js"></script>
-<script src="diagnostics.js"></script>
-<script src="app.js"></script>
-</body>
-</html>
+<script src="runtime.js?v=0.22.0"></script>
+
+
+</body></html>

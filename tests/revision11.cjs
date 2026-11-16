@@ -14,7 +14,7 @@ const ctx={document,console,performance,structuredClone,crypto:require('node:cry
  requestAnimationFrame:()=>1,cancelAnimationFrame(){},ResizeObserver:class{observe(){}},localStorage:{getItem(){return null;},setItem(){}}};
 vm.createContext(ctx);for(const file of ['core.js','journey.js','word-archive.js','lessons.js'])vm.runInContext(fs.readFileSync(path.join(base,file),'utf8'),ctx);
 let src=fs.readFileSync(path.join(base,'app.js'),'utf8');src=src.slice(0,src.indexOf('    let booting = false;'))+' globalThis.testExports={App,loader,sound,speech}; })();';vm.runInContext(src,ctx);
-const{App,loader,sound,speech}=ctx.testExports;loader.load=async()=>['M20,50 L90,50'];const spoken=[],rails=[];speech.speak=(text)=>spoken.push(text);sound.train=(duration)=>{rails.push(duration);return()=>{};};
+const{App,loader,sound,speech}=ctx.testExports;loader.load=async()=>['M20,50 L90,50'];const spoken=[],rails=[];speech.play=(kind)=>spoken.push(kind);sound.train=(duration)=>{rails.push(duration);return()=>{};};
 const flush=()=>new Promise(setImmediate);
 async function finish(app){app.sIdx=1;app.userStrokes=[[{x:20,y:50,t:0},{x:90,y:50,t:500}]];app.skipped=[false];await app.finishChar();}
 async function run(){
@@ -26,7 +26,7 @@ async function run(){
  document.getElementById('btnCloseSelect').click();
  for(const[word,color]of [['ぬめ','white'],['あぬ','green'],['ああぬ','blue'],['ああ','red']]){await app.setWord(word);assert.equal(app.trainTheme,color);assert.match(app.journey.cards[2].art.src,new RegExp('-'+color+'\\.svg$'));}
  await app.setWord('あい');spoken.length=0;await finish(app);assert.deepEqual(spoken,[],'no speech for an intermediate character');assert.equal(rails.length,0,'completion itself does not start the rail sound');assert.equal(app.trainTheme,'green','train color stays fixed during this practice');
- await app.travelTo(1);assert.deepEqual(spoken,[],'auto/manual next letter does not speak a new line');await finish(app);assert.deepEqual(spoken,['全部書けました！出発、進行〜']);
+ await app.travelTo(1);assert.deepEqual(spoken,[],'auto/manual next letter does not speak a new line');await finish(app);assert.deepEqual(spoken,['complete']);
  await app.finishPractice();assert.equal(app.journey.viewport.classList.contains('word-finished'),true);
  let finale=app.journey.finale;assert.equal(finale.querySelectorAll('.whole-train-car').length,3,'entire train includes engine and every letter');assert.equal(finale.querySelectorAll('canvas').length,2,'every completed letter uses its own ink');
  let buttons=finale.querySelectorAll('button');assert.deepEqual(buttons.map(b=>b.textContent),['もういっかい','おだいをえらぶ']);
