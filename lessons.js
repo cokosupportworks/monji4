@@ -32,6 +32,7 @@
     }catch(error){this.say(error.childMessage||'おだいを たしかめてね。');}
    };
    get('btnClearLessonQueue').onclick=()=>{this.queue=[];this.drawQueue();};
+   for(const [id,kind]of [['btnDakuten','dakuten'],['btnHandakuten','handakuten'],['btnSmallKana','small']])get(id).onclick=()=>this.modifyLast(kind);
    get('btnSourceKeys').onclick=()=>this.setSource('keys');get('btnSourceSaved').onclick=()=>this.setSource('saved');
    get('btnSingleMode').onclick=()=>this.setMode('single');get('btnSequenceMode').onclick=()=>this.setMode('sequence');
    get('btnDraftBackspace').onclick=()=>{this.word.value=Array.from(this.word.value).slice(0,-1).join('');this.syncDraft();};
@@ -56,6 +57,21 @@
   appendCharacter(char){
    if(this.busy)return;const next=(this.word.value+char).normalize('NFC');if(Array.from(next).length>20){this.say('１つの おだいは 20もじまでだよ。');return;}
    this.word.value=next;this.syncDraft();this.say('');
+  }
+  modifyLast(kind){
+   if(this.busy)return;
+   const chars=Array.from(this.word.value.normalize('NFC')),last=chars.at(-1);
+   if(!last){this.say('さきに もじを えらんでね。');return;}
+   const plain=last.normalize('NFD')[0];let next;
+   if(kind==='small'){
+    const large='あいうえおやゆよつわアイウエオヤユヨツワ',small='ぁぃぅぇぉゃゅょっゎァィゥェォャュョッヮ';
+    const i=large.indexOf(last),j=small.indexOf(last);next=i>=0?small[i]:j>=0?large[j]:null;
+   }else{
+    const allowed=kind==='dakuten'?'うかきくけこさしすせそたちつてとはひふへほウカキクケコサシスセソタチツテトハヒフヘホ':'はひふへほハヒフヘホ';
+    if(allowed.includes(plain)){const marked=(plain+(kind==='dakuten'?'\u3099':'\u309a')).normalize('NFC');next=last===marked?plain:marked;}
+   }
+   if(!next){this.say('この もじは かえられないよ。ほかの もじを えらんでね。');return;}
+   chars[chars.length-1]=next;this.word.value=chars.join('');this.syncDraft();this.say('');
   }
   choose(record){if(this.busy)return;this.editingId=null;this.cancel.hidden=true;this.save.textContent='とうろくする';document.getElementById('lessonEditorTitle').textContent='いま つくっている おだいを のこす';this.word.value=record.word;this.label.value='';this.syncDraft();this.say('おだいに いれたよ。たしかめてから「はじめる」を おしてね。');}
   syncDraft(){

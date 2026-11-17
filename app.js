@@ -92,7 +92,7 @@
 
     // User-supplied recordings share the same unlocked audio context as the effects.
     class RecordedVoice {
-      constructor(){this.enabled=true;this.generation=0;this.buffers=new Map();this.paths={speed:'assets/voice/slow.wav',pause:'assets/voice/imagine.wav',complete:'assets/voice/complete.wav'};}
+      constructor(){this.enabled=true;this.generation=0;this.buffers=new Map();this.paths={speed:'assets/voice/slow.wav',pause:'assets/voice/imagine.wav',complete:'assets/voice/complete.wav',welcome:'assets/voice/welcome.wav'};}
       unlock(){
         const ctx=sound.ctx;if(!ctx?.decodeAudioData||typeof fetch!=='function')return;
         if(this.context!==ctx){this.context=ctx;this.buffers.clear();}
@@ -103,13 +103,13 @@
         }
       }
       cancel(){this.generation++;if(this.current){try{this.current.stop();}catch{}this.current=null;}}
-      play(kind){
+      play(kind,onStarted){
         this.cancel();if(!this.enabled||!sound.on||!this.paths[kind])return;
-        sound.init();this.unlock();const token=this.generation,ctx=sound.ctx,pending=this.buffers.get(kind),requested=performance.now();if(!pending)return;
+        this.kind=kind;sound.init();this.unlock();const token=this.generation,ctx=sound.ctx,pending=this.buffers.get(kind),requested=performance.now();if(!pending)return;
         const active=()=>token===this.generation&&this.enabled&&sound.on&&!document.hidden&&performance.now()-requested<4000;
         pending.then(buffer=>{if(!active()||sound.ctx!==ctx)return;sound.whenReady(()=>{
           if(!active())return;
-          try{const source=ctx.createBufferSource();source.buffer=buffer;source.connect(ctx.destination);this.current=source;source.onended=()=>{source.disconnect?.();if(this.current===source)this.current=null;};source.start();}
+          try{const source=ctx.createBufferSource();source.buffer=buffer;source.connect(ctx.destination);this.current=source;source.onended=()=>{source.disconnect?.();if(this.current===source)this.current=null;};source.start();onStarted?.();}
           catch(error){this.lastError=error;}
         },active);}).catch(error=>{this.lastError=error;});
       }
@@ -122,7 +122,7 @@
       katakana: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン'.split(''),
       kanji1: '一二三四五六七八九十百千上下左右中大小月日年早木林森山川土空田天生花草犬虫音町村男女子目耳手足見立休言字学校文本日名正水火'.split(''),
       kanji2: '引羽雲園遠何科夏家歌画会回海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元原戸古午後語工公広交光考行'.split(''),
-      numbers: ['1','2','3','4','5','6','7','8','9','0']
+      numbers: Array.from({length:61},(_,i)=>String(i))
     };
 
     // 3. Official KanjiVG Stroke Vector Loader
@@ -256,9 +256,9 @@
         // もんじぼたる設定
         this.baseOpacity = 1.0;
         this.hotaru = {
-          enabled: false,
-          visibleSec: 2.0,
-          hiddenSec: 1.0,
+          enabled: true,
+          visibleSec: 1.5,
+          hiddenSec: 3.0,
           currentOpacity: 1.0,
           startTime: 0
         };
@@ -266,7 +266,7 @@
         // 学習履歴の読み込み
         this.history = this.loadHistory();
 
-        this.level = 'normal';
+        this.level = 'relaxed';
         this.params = {
           relaxed: { relaxed:true, dev:46, startTol:460, maxRatio:2.5, validRatio:.60, minCoverage:.55 },
           easy: { dev: 38, startTol: 45, maxRatio: 2.2, validRatio: 0.72, minCoverage: 0.65 },
@@ -286,7 +286,7 @@
         this.toast = document.getElementById('toast');
         this.hanamaru = document.getElementById('hanamaru');
 
-        const unlockAudio=event=>{if(sound.on&&!event.isComposing){sound.init();speech.unlock();}};
+        const unlockAudio=event=>{if(sound.on&&!event.isComposing){sound.init();speech.unlock();if(this.welcomeVoicePending&&['pointerdown','touchend','keydown'].includes(event.type))this.playWelcomeVoice();}};
         for(const type of ['pointerdown','pointerup','touchend','click','keydown'])document.addEventListener(type,unlockAudio,true);
         this.bindEvents();
         this.bindFoundationEvents();
@@ -312,6 +312,12 @@
         this.journey.beginReset();
         this.setNotice('');
         this.renderPills();
+        this.welcomeVoicePending=true;this.playWelcomeVoice();
+      }
+
+      playWelcomeVoice(){
+        if(!this.welcomeVoicePending||this.word||document.hidden)return;
+        speech.play('welcome',()=>{this.welcomeVoicePending=false;});
       }
 
       loadHistory() {
@@ -486,7 +492,7 @@
         this.journey?.beginReset();this.journey?.clearFinale();
         if(this.journey?.welcome)this.journey.welcome.hidden=true;
         document.querySelector('body')?.classList.remove('no-task');
-        speech.cancel();speech.unlock();
+        this.welcomeVoicePending=false;speech.cancel();speech.unlock();
         if(draft?.sequence?.length){this.lessonSequence=[...draft.sequence];this.lessonIndex=draft.sequenceIndex||0;}
         else if(!keepSequence){this.lessonSequence=[];this.lessonIndex=0;}
         this.word = w.trim().normalize('NFC');
@@ -965,7 +971,7 @@
 
       restoreSettings(saved) {
         this.archive = window.monjiArchive;
-        this.display = { mode: saved.display?.mode === 'fixed' ? 'fixed' : 'flow', direction: saved.display?.direction === 'horizontal' ? 'horizontal' : 'vertical',
+        this.display = { mode: saved.display?.mode === 'fixed' ? 'fixed' : 'flow', direction: saved.display?.direction === 'vertical' ? 'vertical' : 'horizontal',
           train: saved.display?.train !== false, reduced: saved.display?.reduced === true,
           auto: saved.display?.auto !== false };
         document.getElementById('journey-direction').value = this.display.direction;
@@ -980,9 +986,9 @@
         this.loadGeneration = 0;
         this.loadedIndex = null;
         this.baseOpacity = Math.max(0.1, Math.min(1, saved.baseOpacity || 1));
-        this.hotaru.enabled = saved.hotaru?.enabled === true;
-        this.hotaru.visibleSec = Math.max(0.5, Math.min(10, saved.hotaru?.visibleSec || 2));
-        this.hotaru.hiddenSec = Math.max(0.5, Math.min(10, saved.hotaru?.hiddenSec || 1));
+        this.hotaru.enabled = saved.hotaru?.enabled !== false;
+        this.hotaru.visibleSec = Math.max(0.5, Math.min(10, saved.hotaru?.visibleSec ?? 1.5));
+        this.hotaru.hiddenSec = Math.max(0.5, Math.min(10, saved.hotaru?.hiddenSec ?? 3));
         this.hotaru.once = saved.hotaru?.once === true;
         this.hotaru.currentOpacity = this.baseOpacity;
         this.showGuide = saved.showGuide !== false;
@@ -1143,7 +1149,7 @@
         for (const id of ['btnGuide','btnGrid','badgeStrict'])
           document.getElementById(id).addEventListener('click', () => this.saveSettings());
         for (const button of settings.querySelectorAll('.set-strict')) button.addEventListener('click', () => this.saveSettings());
-        const suspend = () => {
+        const suspend = event => {
           clearTimeout(this.autoAdvanceTimer);
           this.travelGeneration = (this.travelGeneration || 0) + 1;
           if (this.journey?.animation) this.journey.animation.finish();
@@ -1151,7 +1157,7 @@
           clearTimeout(this.stopRequestTimer);
           this.isDown = false; this.pointerId = null; this.drawing = []; this.renderDrawing();
           this.stopAnim(); this.stopHotaru(); this.saveDraft();
-          speech.cancel();
+          if(event?.currentTarget?.id!=='btnOpenSelect'||speech.kind!=='welcome')speech.cancel();
         };
         for (const id of ['btnOpenSelect','btnOpenRecord','btnSettings']) document.getElementById(id).addEventListener('click', suspend);
         for (const id of ['btnCloseSelect','btnCloseRecord','btnCloseSettings']) document.getElementById(id).addEventListener('click', () => {
@@ -1410,14 +1416,26 @@
       populateGrid(tab) {
         const g = document.getElementById('charGrid');
         if (!g) return;
-        g.innerHTML = '';
-        (PRESETS[tab] || []).forEach(ch => {
-          const b = document.createElement('button');
-          b.className = 'char-card'; b.textContent = ch;
-          b.type='button';b.setAttribute('aria-label',ch+'を おだいに いれる');
-          b.onclick = () => this.lessonLibrary.appendCharacter(ch);
-          g.appendChild(b);
-        });
+        g.replaceChildren();
+        const kana=tab==='hiragana'||tab==='katakana';g.dataset.layout=kana?'kana':tab==='numbers'?'numbers':'kanji';
+        document.getElementById('kanaModifiers').hidden=!kana;
+        const key=ch=>{
+          if(!ch){const gap=document.createElement('span');gap.className='kana-gap';gap.setAttribute('aria-hidden','true');g.append(gap);return;}
+          const b=document.createElement('button');b.className='char-card';b.textContent=ch;b.type='button';b.setAttribute('aria-label',ch+'を おだいに いれる');b.onclick=()=>this.lessonLibrary.appendCharacter(ch);g.append(b);
+        };
+        const heading=text=>{const title=document.createElement('div');title.className='keyboard-section-title';title.textContent=text;g.append(title);};
+        const katakana=text=>tab==='katakana'?Array.from(text,ch=>String.fromCodePoint(ch.codePointAt(0)+0x60)).join(''):text;
+        if(kana){
+          heading(tab==='katakana'?'ア・カ・サ… の じゅん':'あ・か・さ… の じゅん');
+          for(const row of ['あいうえお','かきくけこ','さしすせそ','たちつてと','なにぬねの','はひふへほ','まみむめも','や ゆ よ','らりるれろ','わ   を','ん    '])for(const ch of row)key(ch===' '?null:katakana(ch));
+          heading('てんてん・まる');
+          for(const ch of 'がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ')key(katakana(ch));
+          // ヴ and ゔ are both supported, alongside the usual contracted sounds.
+          key(tab==='katakana'?'ヴ':'ゔ');for(let i=0;i<4;i++)key(null);
+          heading('ちいさい もじ');
+          for(const row of ['ぁぃぅぇぉ','ゃ ゅ ょ','っゎ   '])for(const ch of row)key(ch===' '?null:katakana(ch));
+        }else (PRESETS[tab]||[]).forEach(key);
+        g.scrollTop=0;
       }
 
       checkStroke() {

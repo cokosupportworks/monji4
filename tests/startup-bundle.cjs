@@ -1,12 +1,12 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const {makeDOM}=require('./dom-harness.cjs'),{makeDB}=require('./lesson-db-harness.cjs');
 const base=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(base,'index.html'),'utf8'),{document}=makeDOM(html);document.readyState='loading';
-const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);assert.deepEqual(scripts,['runtime.js?v=0.22.0']);
+const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);assert.deepEqual(scripts,['runtime.js?v=0.23.0']);
 const ctx={document,console,performance,structuredClone,indexedDB:makeDB().indexedDB,crypto:require('node:crypto').webcrypto,innerWidth:1000,innerHeight:750,devicePixelRatio:1,setTimeout,clearTimeout,addEventListener(){},requestAnimationFrame:()=>1,cancelAnimationFrame(){},ResizeObserver:class{observe(){}},localStorage:{getItem(){return null;},setItem(){}}};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(fs.readFileSync(path.join(base,'runtime.js'),'utf8'),ctx);
 const flush=()=>new Promise(setImmediate),get=id=>document.getElementById(id);
 async function run(){document.emit('DOMContentLoaded');await flush();await flush();const app=ctx.app;assert.ok(app?.lessonLibrary,'full startup must initialize the keyboard');assert.equal(app.word,'');get('btnWelcomeSelect').click();assert.ok(get('modalSelect').classList.contains('open'));assert.match(get('lessonDraftPreview').children[0].textContent,/うえの/);
  const key=ch=>get('charGrid').children.find(b=>b.textContent===ch).click();key('ね');key('こ');assert.equal(get('customInput').value,'ねこ');assert.equal(get('lessonDraftPreview').children.length,2);assert.equal(get('btnApplyCustom').disabled,false);get('btnDraftBackspace').click();assert.equal(get('customInput').value,'ね');key('こ');get('btnSequenceMode').click();get('btnQueueDraft').click();key('い');key('ぬ');assert.equal(get('btnStartLessonQueue').disabled,false);assert.match(get('btnStartLessonQueue').textContent,/2この/);
  // Start orientation validation is reached through the rendered button.
- get('btnStartLessonQueue').click();assert.ok(app.orientationPopup?.classList.contains('open'));assert.equal(get('customInput').value,'いぬ');assert.equal(app.word,'');
+ app.display.direction='vertical';get('btnStartLessonQueue').click();assert.ok(app.orientationPopup?.classList.contains('open'));assert.equal(get('customInput').value,'いぬ');assert.equal(app.word,'');
  console.log('PASS: distributed bundle full boot, real selection handlers, draft preview, start enablement, Unicode delete, queue and orientation prompt');}
 run().catch(e=>{console.error(e);process.exitCode=1;});

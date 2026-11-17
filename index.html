@@ -12,14 +12,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=0.22.0">
-  <link rel="stylesheet" href="journey.css?v=0.22.0">
-  <link rel="stylesheet" href="album.css?v=0.22.0">
-  <link rel="stylesheet" href="practice.css?v=0.22.0">
-  <link rel="stylesheet" href="hotaruko.css?v=0.22.0">
-  <link rel="stylesheet" href="responsive.css?v=0.22.0">
-  <link rel="stylesheet" href="tools.css?v=0.22.0">
-  <link rel="stylesheet" href="settings.css?v=0.22.0">
+  <link rel="stylesheet" href="styles.css?v=0.23.0">
+  <link rel="stylesheet" href="journey.css?v=0.23.0">
+  <link rel="stylesheet" href="album.css?v=0.23.0">
+  <link rel="stylesheet" href="practice.css?v=0.23.0">
+  <link rel="stylesheet" href="hotaruko.css?v=0.23.0">
+  <link rel="stylesheet" href="responsive.css?v=0.23.0">
+  <link rel="stylesheet" href="tools.css?v=0.23.0">
+  <link rel="stylesheet" href="settings.css?v=0.23.0">
 </head>
 <body class="no-task">
 
@@ -91,7 +91,7 @@
       </div>
       <div class="modal-body">
         <section class="preset-panel" id="presetPanel" aria-label="もじの キーボード">
-        <p class="keyboard-help">もじを おすと、したの おだいに はいるよ。１もじでも、ことばでも つくれるよ。</p>
+        <p class="keyboard-help">もじを おすと、おだいに はいるよ。１もじでも、ことばでも つくれるよ。</p>
         <div class="tab-bar" id="tabBar">
           <button class="tab-btn active" data-tab="hiragana">ひらがな</button>
           <button class="tab-btn" data-tab="katakana">かたかな</button>
@@ -99,6 +99,7 @@
           <button class="tab-btn" data-tab="kanji2">２ねんせいの かんじ</button>
           <button class="tab-btn" data-tab="numbers">すうじ</button>
         </div>
+        <div id="kanaModifiers" class="kana-modifiers"><button type="button" class="btn" id="btnDakuten" aria-label="さいごの もじに てんてん">゛ てんてん</button><button type="button" class="btn" id="btnHandakuten" aria-label="さいごの もじに まる">゜ まる</button><button type="button" class="btn" id="btnSmallKana" aria-label="さいごの もじを ちいさく・おおきく">ゃっ ちいさく</button><small>さいごに えらんだ もじが かわるよ</small></div>
         <div class="char-grid" id="charGrid"></div>
 
         </section>
@@ -149,25 +150,25 @@
       <div class="modal-body">
         <div id="hotaruSettings" style="background: rgb(241, 245, 249); padding: 12px; border-radius: 12px; margin-top: 0px;">
           <label style="display:flex; align-items:center; gap:8px; font-weight:900; cursor:pointer;">
-            <input type="checkbox" id="chkHotaru" style="width:20px; height:20px;">
+            <input type="checkbox" id="chkHotaru" checked style="width:20px; height:20px;">
             ✨ ほたるモード（未記入のお手本全体が消えます）
           </label>
           <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-top:10px; margin-bottom:4px;">
-            <span>見えている時間</span><span id="lblHotaruVis">2.0秒</span>
+            <span>見えている時間</span><span id="lblHotaruVis">1.5秒</span>
           </div>
-          <input type="range" class="slider" id="sldHotaruVis" min="5" max="100" value="20">
+          <input type="range" class="slider" id="sldHotaruVis" min="5" max="100" value="15">
           
           <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.88rem; margin-top:10px; margin-bottom:4px;">
-            <span>消えている時間</span><span id="lblHotaruHid">1.0秒</span>
+            <span>消えている時間</span><span id="lblHotaruHid">3.0秒</span>
           </div>
-          <input type="range" class="slider" id="sldHotaruHid" min="5" max="100" value="10">
+          <input type="range" class="slider" id="sldHotaruHid" min="5" max="100" value="30">
           <label style="display:flex;gap:8px;align-items:center;margin-top:16px"><input type="checkbox" id="chkOnce"> はじめだけ見本を表示する</label>
         </div><fieldset id="judgementSettings" class="request-settings" style="margin-top: 0px;"><legend>判定の厳しさ</legend><div>
           
-          <div class="badge" id="badgeStrict" title="判定変更">判定: ふつう</div>
-          <div style="display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px;"><button class="btn set-strict" data-level="relaxed">げきあま</button>
+          <div class="badge" id="badgeStrict" title="判定変更">判定: げきあま</div>
+          <div style="display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px;"><button class="btn set-strict btn-primary" data-level="relaxed">げきあま</button>
             <button class="btn set-strict" data-level="easy">やさしい</button>
-            <button class="btn set-strict btn-primary" data-level="normal">ふつう</button>
+            <button class="btn set-strict" data-level="normal">ふつう</button>
             <button class="btn set-strict" data-level="strict">しっかり</button>
           </div>
         </div><div>
@@ -186,7 +187,7 @@
         
         <fieldset class="request-settings" style="margin-top: 0px;"><legend>文字の列と電車</legend>
           <label>表示方式 <select id="journey-mode"><option value="flow">１文字ずつ流れる</option><option value="fixed">全文字を固定表示して書く</option></select></label>
-          <label>文字の方向 <select id="journey-direction"><option value="vertical">縦書き・真上から見た車両</option><option value="horizontal">横書き・横から見た車両</option></select></label>
+          <label>文字の方向 <select id="journey-direction"><option value="vertical">縦書き・真上から見た車両</option><option value="horizontal" selected>横書き・横から見た車両</option></select></label>
           <label><input type="checkbox" id="journey-train" checked=""> 車両と線路を表示する</label>
           <label><input type="checkbox" id="journey-auto" checked=""> 書けたら次の文字へ進む</label>
           <label><input type="checkbox" id="journey-reduced"> 移動のアニメーションを控える</label>
@@ -211,11 +212,11 @@
           <input type="range" class="slider" id="sldOpac" min="10" max="100" value="100">
         </div>
 
-      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作㉒</small></div></div>
+      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作㉓</small></div></div>
     </div>
   </div>
 
-<script src="runtime.js?v=0.22.0"></script>
+<script src="runtime.js?v=0.23.0"></script>
 
 
 </body></html>
