@@ -5,9 +5,14 @@
     // 1. Web Audio Synthesizer
     class Sound {
       constructor() { this.ctx = null; this.on = true; }
+      retire(){
+        this.stopTrain?.();this.stopTrain=null;this.stopFeedback?.();this.stopFeedback=null;
+        const ctx=this.ctx;this.ctx=null;this.noiseBuffer=null;this.ready=null;
+        try{Promise.resolve(ctx?.close?.()).catch(()=>{});}catch{}
+      }
       init() {
         try {
-          if(this.ctx?.state==='closed'){this.ctx=null;this.noiseBuffer=null;}
+          if(this.ctx?.state==='closed'||this.ctx?.state==='interrupted')this.retire();
           if(!this.ctx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)this.ctx=new AC();}
           if(!this.ctx)return;
           const ctx=this.ctx;
@@ -92,12 +97,16 @@
 
     // User-supplied recordings share the same unlocked audio context as the effects.
     class RecordedVoice {
-      constructor(){this.enabled=true;this.generation=0;this.buffers=new Map();this.paths={speed:'assets/voice/slow.wav',pause:'assets/voice/imagine.wav',complete:'assets/voice/complete.wav',welcome:'assets/voice/welcome.wav'};}
+      constructor(){this.enabled=true;this.generation=0;this.buffers=new Map();this.files=new Map();this.paths={speed:'assets/voice/slow.wav',pause:'assets/voice/imagine.wav',complete:'assets/voice/complete.wav',welcome:'assets/voice/welcome.wav'};}
       unlock(){
         const ctx=sound.ctx;if(!ctx?.decodeAudioData||typeof fetch!=='function')return;
         if(this.context!==ctx){this.context=ctx;this.buffers.clear();}
         for(const [kind,url]of Object.entries(this.paths))if(!this.buffers.has(kind)){
-          const loading=fetch(url).then(response=>{if(!response.ok)throw new Error('音声を読み込めません: '+url);return response.arrayBuffer();}).then(data=>ctx.decodeAudioData(data));
+          if(!this.files.has(url)){
+            const file=fetch(url).then(response=>{if(!response.ok)throw new Error('音声を読み込めません: '+url);return response.arrayBuffer();});
+            this.files.set(url,file);file.catch(()=>{if(this.files.get(url)===file)this.files.delete(url);});
+          }
+          const loading=this.files.get(url).then(data=>ctx.decodeAudioData(data.slice(0)));
           this.buffers.set(kind,loading);
           loading.catch(error=>{this.lastError=error;if(this.buffers.get(kind)===loading)this.buffers.delete(kind);});
         }
@@ -175,11 +184,10 @@
         ];
 
         for (const u of urls) {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 6000);
           try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 2500);
             const res = await fetch(u, { cache: 'force-cache', signal: controller.signal });
-            clearTimeout(timer);
             if (res.ok) {
               const txt = await res.text();
               const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
@@ -192,7 +200,7 @@
                 return paths;
               }
             }
-          } catch(e) {}
+          } catch(e) {} finally{clearTimeout(timer);}
         }
 
         throw new Error('この文字の書き順を取得できません。未対応または通信の問題です。');
@@ -457,7 +465,7 @@
         else if(!this.loading&&!this.preparingWord&&!this.transitioning&&this.strokes.length&&this.sIdx>=this.strokes.length)this.scheduleAdvance();
       }
       async resumeArrival(){
-        if(!this.awaitingArrival || !this.orientationReady() || this.loading || this.transitioning || document.hidden || document.querySelector('.modal-overlay.open'))return false;
+        if(this.wordDataReady===false || !this.awaitingArrival || !this.orientationReady() || this.loading || this.transitioning || document.hidden || document.querySelector('.modal-overlay.open'))return false;
         this.awaitingArrival=false;
         if(this.journey?.canBookend())return this.runTrainScene('arrival');
         this.journey?.revealPrepared();
@@ -515,6 +523,8 @@
       async setWord(w, draft = null, keepSequence = false) {
         if (!w || !w.trim() || this.finishing || this.transitioning) return;
         clearTimeout(this.autoAdvanceTimer);clearTimeout(this.stopRequestTimer);
+        const wordToken=this.wordLoadToken=(this.wordLoadToken||0)+1;
+        this.wordDataReady=false;this.loading=true;this.loadGeneration=(this.loadGeneration||0)+1;this.journey?.setDataLoading(true);
         this.preparingWord=true;this.awaitingArrival=!draft;this.stopHotaru();this.stopAnim();sound.stopTrain?.();
         this.journey?.beginReset();this.journey?.clearFinale();
         if(this.journey?.welcome)this.journey.welcome.hidden=true;
@@ -541,7 +551,7 @@
         this.renderPills();
         const practice=this.practiceId;
         this.strokes=[];this.userStrokes=[];this.drawing=[];this.render();
-        this.journey?.refresh(this.chars,this.cIdx,this.sessions,loader,samplePath);
+        const preload=Promise.all([...new Set(this.chars)].map(async ch=>{try{return await loader.load(ch);}catch(error){error.character=ch;throw error;}}));preload.catch(()=>{});
         const known=new Set([...(this.knownChars||[]),...Object.keys(this.history||{}).filter(ch=>this.history[ch]?.count>0)]);
         try {for(const record of await (this.archive.list?.()||Promise.resolve([])))if(record.char)known.add(record.char);}catch{}
         if(practice!==this.practiceId)return;
@@ -550,10 +560,20 @@
         this.journey?.setTheme(this.trainTheme);
         if(!matchingDraft)this.journey?.prepareArrival();
         try {
+          await preload;
+          if(wordToken!==this.wordLoadToken)return;
           await this.loadChar();
+          if(this.loadedIndex===null)throw new Error('おてほんを ひらけなかったよ');
+          await this.journey?.ready;
+          if(wordToken!==this.wordLoadToken)return;
+          this.wordDataReady=true;this.journey?.setDataLoading(false);
           if(matchingDraft && draft.finished)this.showPracticeEnd();
           else if(!matchingDraft && practice===this.practiceId && this.loadedIndex===0) await this.resumeArrival();
           else if(matchingDraft || this.loadedIndex===null){this.awaitingArrival=false;this.journey?.revealPrepared();}
+        } catch(error){
+          if(wordToken!==this.wordLoadToken)return;
+          this.loading=false;this.loadedIndex=null;this.wordDataReady=false;
+          this.journey?.setDataError('もじの データを よみこめなかったよ。もういちど ためしてね。',()=>this.setWord(this.word,null,true));
         } finally {
           if(practice===this.practiceId){this.preparingWord=false;this.updateOrientation();}
         }
@@ -1086,7 +1106,7 @@
       }
 
       inputEnabled() {
-        return this.orientationReady() && !this.preparingWord && !this.awaitingArrival && !this.transitioning && !this.loading && !this.finishing && this.strokes.length > 0 && this.sIdx < this.strokes.length &&
+        return this.wordDataReady!==false && this.orientationReady() && !this.preparingWord && !this.awaitingArrival && !this.transitioning && !this.loading && !this.finishing && this.strokes.length > 0 && this.sIdx < this.strokes.length &&
           !document.hidden && !document.querySelector('.modal-overlay.open');
       }
 
@@ -1192,10 +1212,11 @@
           this.updateOrientation();
         });
         document.addEventListener('visibilitychange', () => {
-          if (document.hidden) suspend();
-          else if (this.inputEnabled() && this.hotaru.enabled) this.startHotaru();
+          if (document.hidden){suspend();speech.cancel();sound.retire();}
+          else {sound.init();speech.unlock();if(this.welcomeVoicePending)this.playWelcomeVoice();if(this.inputEnabled()&&this.hotaru.enabled)this.startHotaru();}
         });
-        window.addEventListener('pagehide', () => this.saveDraft());
+        window.addEventListener('pagehide', () => {suspend();speech.cancel();sound.retire();});
+        window.addEventListener('pageshow', () => {if(!document.hidden){sound.init();speech.unlock();}});
         document.getElementById('btnExportPending').onclick = () => {
           this.rememberCurrent();
           this.downloadJSON({ format: 'monjibotaru4-recovery', version: 1, date: new Date().toISOString(), word: this.word, items: this.sessions, practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt, unsavedRecords: Object.values(this.unsavedRecords) }, 'monjibotaru4-recovery.json');

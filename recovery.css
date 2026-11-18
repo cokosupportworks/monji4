@@ -1,0 +1,23 @@
+/* Keep modal headings and controls below the iPhone status bar and home area. */
+body {padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);}
+.modal-overlay,#modalSelect,#modalSettings,#modalRecord,#modalTools,#orientationPopup {padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-right:calc(env(safe-area-inset-right,0px) + 12px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px);padding-left:calc(env(safe-area-inset-left,0px) + 12px);}
+#modalSelect>.modal,#modalSettings>.modal,#modalRecord>.modal,#modalTools>.modal,#orientationPopup>.modal {max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px);}
+#modalSelect>.modal {height:min(820px,calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px));}
+.modal-head {flex-shrink:0;}
+.opening-status {position:absolute;top:calc(50% + 65px);left:max(20px,env(safe-area-inset-left));right:max(20px,env(safe-area-inset-right));text-align:center;color:#fffdf1;font-size:clamp(17px,3vw,24px);line-height:1.8;margin:0;padding:12px;background:#203c2ed9;border-radius:14px;}
+.opening-status[hidden] {display:none;}
+.opening-play:disabled {opacity:.85;cursor:wait;}
+.train-loading-panel {position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:28px;background:#fff9e9;text-align:center;color:#355641;}
+.train-loading-panel[hidden] {display:none;}
+.train-loading-panel p {font-size:clamp(23px,4vw,36px);line-height:1.9;font-weight:700;max-width:24em;margin:0;}
+.train-loading-panel .btn {min-height:48px;font-size:18px;}
+.journey.data-loading>.journey-track,.journey.data-loading>.journey-rail,.journey.data-loading>.journey-progress,.journey.data-loading>.station-marker {opacity:0!important;visibility:hidden!important;pointer-events:none;}
+@media(orientation:portrait) and (max-width:700px){
+ #modalSelect .modal-head {min-height:54px;}
+ #modalSelect .modal-body {min-height:100px;}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .train-loading-panel {padding:8px;gap:8px;overflow-y:auto;}
+ .train-loading-panel p {font-size:clamp(18px,2.6vw,24px);line-height:1.5;max-width:30em;}
+ .train-loading-panel .btn {min-height:40px;font-size:16px;}
+}

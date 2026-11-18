@@ -55,6 +55,22 @@
         if(this.layout())this.onResize();
       });this.observer.observe(this.viewport);
     }
+    setDataLoading(active){
+      clearTimeout(this.dataLoadingTimer);
+      if(!this.dataLoadingPanel){
+        const panel=document.createElement('section');panel.className='train-loading-panel';panel.setAttribute('role','status');panel.setAttribute('aria-live','polite');panel.hidden=true;
+        const text=document.createElement('p'),retry=document.createElement('button');retry.className='btn';retry.textContent='もういちど よみこむ';retry.hidden=true;
+        panel.append(text,retry);this.viewport.append(panel);this.dataLoadingPanel=panel;this.dataLoadingText=text;this.dataLoadingRetry=retry;
+      }
+      this.viewport.classList.toggle('data-loading',active);this.dataLoadingPanel.hidden=true;this.dataLoadingRetry.hidden=true;
+      if(active)this.dataLoadingTimer=setTimeout(()=>{
+        if(!this.viewport.classList.contains('data-loading'))return;
+        this.dataLoadingText.textContent='ただいま れっしゃがおくれております。もうしばらくおまちください。';this.dataLoadingPanel.hidden=false;
+      },600);
+    }
+    setDataError(message,retry){
+      this.setDataLoading(true);clearTimeout(this.dataLoadingTimer);this.dataLoadingText.textContent=message;this.dataLoadingRetry.hidden=false;this.dataLoadingRetry.onclick=retry;this.dataLoadingPanel.hidden=false;
+    }
     build(chars,index) {
       const fixed=this.display.mode==='fixed', signature=fixed?'fixed:'+chars.length:'flow';
       if(signature===this.signature)return;
@@ -124,7 +140,7 @@
       this.revealPrepared();this.clearFinale();this.viewport.classList.add('word-finished');
       const panel=document.createElement('section');panel.className='journey-finale';panel.setAttribute('aria-label','かきおわった でんしゃ');
       const title=document.createElement('h2');title.textContent='ぜんぶ かけたね！';
-      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.28.0")`;const name=document.createElement('small');name.className='station-name';name.textContent=actions.station.name;title.append(name);}
+      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.29.0")`;const name=document.createElement('small');name.className='station-name';name.textContent=actions.station.name;title.append(name);}
       const strip=document.createElement('div');strip.className='whole-train';strip.style.setProperty('--train-count',String(this.chars.length+1));
       const art=artwork(this.display.direction);
       const engine=document.createElement('div');engine.className='whole-train-car locomotive-car';
@@ -224,7 +240,7 @@
             this.paint(card,at,this.sessions[at],paths);
           }catch{
             if(token!==this.generation)return;
-            const ctx=card.canvas.getContext('2d');ctx.fillStyle='#637565';ctx.font='22px sans-serif';ctx.textAlign='center';ctx.fillText('おてほんを ひらけないよ',200,210);
+            // Loading errors are presented outside the carriage by the application.
           }
         })();card.ready=task;return task;
       });
