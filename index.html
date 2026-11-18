@@ -12,16 +12,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=0.23.0">
-  <link rel="stylesheet" href="journey.css?v=0.23.0">
-  <link rel="stylesheet" href="album.css?v=0.23.0">
-  <link rel="stylesheet" href="practice.css?v=0.23.0">
-  <link rel="stylesheet" href="hotaruko.css?v=0.23.0">
-  <link rel="stylesheet" href="responsive.css?v=0.23.0">
-  <link rel="stylesheet" href="tools.css?v=0.23.0">
-  <link rel="stylesheet" href="settings.css?v=0.23.0">
+  <link rel="stylesheet" href="styles.css?v=0.24.0">
+  <link rel="stylesheet" href="journey.css?v=0.24.0">
+  <link rel="stylesheet" href="album.css?v=0.24.0">
+  <link rel="stylesheet" href="practice.css?v=0.24.0">
+  <link rel="stylesheet" href="hotaruko.css?v=0.24.0">
+  <link rel="stylesheet" href="responsive.css?v=0.24.0">
+  <link rel="stylesheet" href="tools.css?v=0.24.0">
+  <link rel="stylesheet" href="settings.css?v=0.24.0">
+  <link rel="stylesheet" href="opening.css?v=0.24.0">
 </head>
-<body class="no-task">
+<body class="no-task opening-active">
+  <section id="openingScreen" class="opening-screen" aria-label="もんじぼたる４ タイトルどうが">
+    <video id="openingVideo" src="assets/opening.mp4" playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-label="もんじぼたる４ タイトルどうが"></video>
+    <button type="button" id="btnPlayOpening" class="opening-play" hidden>タップして はじめる</button>
+  </section>
 
   <svg id="svgHelper" style="position:fixed; top:-9999px; left:-9999px; width:109px; height:109px; visibility:hidden; pointer-events:none;" viewBox="0 0 109 109">
     <path id="svgHelperPath" d=""></path>
@@ -212,11 +217,11 @@
           <input type="range" class="slider" id="sldOpac" min="10" max="100" value="100">
         </div>
 
-      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作㉓</small></div></div>
+      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作㉔</small></div></div>
     </div>
   </div>
 
-<script src="runtime.js?v=0.23.0"></script>
+<script src="runtime.js?v=0.24.0"></script>
 
 
 </body></html>

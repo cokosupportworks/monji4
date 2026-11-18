@@ -316,7 +316,7 @@
       }
 
       playWelcomeVoice(){
-        if(!this.welcomeVoicePending||this.word||document.hidden)return;
+        if(!this.welcomeVoicePending||this.word||document.hidden||globalThis.MonjiOpening?.active)return;
         speech.play('welcome',()=>{this.welcomeVoicePending=false;});
       }
 
@@ -1546,6 +1546,7 @@
     async function init() {
       if (window.app || booting) return;
       booting = true;
+      globalThis.MonjiOpening?.start();
       window.monjiArchive = new StrokeArchive();
       let storageError = false;
       try {
