@@ -12,21 +12,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=0.25.0">
-  <link rel="stylesheet" href="journey.css?v=0.25.0">
-  <link rel="stylesheet" href="album.css?v=0.25.0">
-  <link rel="stylesheet" href="practice.css?v=0.25.0">
-  <link rel="stylesheet" href="hotaruko.css?v=0.25.0">
-  <link rel="stylesheet" href="responsive.css?v=0.25.0">
-  <link rel="stylesheet" href="tools.css?v=0.25.0">
-  <link rel="stylesheet" href="settings.css?v=0.25.0">
-  <link rel="stylesheet" href="opening.css?v=0.25.0">
+  <link rel="stylesheet" href="styles.css?v=0.28.0">
+  <link rel="stylesheet" href="journey.css?v=0.28.0">
+  <link rel="stylesheet" href="album.css?v=0.28.0">
+  <link rel="stylesheet" href="practice.css?v=0.28.0">
+  <link rel="stylesheet" href="hotaruko.css?v=0.28.0">
+  <link rel="stylesheet" href="responsive.css?v=0.28.0">
+  <link rel="stylesheet" href="tools.css?v=0.28.0">
+  <link rel="stylesheet" href="settings.css?v=0.28.0">
+  <link rel="stylesheet" href="opening.css?v=0.28.0">
 </head>
 <body class="no-task opening-active">
   <section id="openingScreen" class="opening-screen" aria-label="もんじぼたる４ タイトルどうが">
-    <video id="openingVideo" src="assets/opening.mp4" playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-label="もんじぼたる４ タイトルどうが"></video>
+    <video id="openingVideo" src="assets/opening.mp4?v=0.28.0" playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-label="もんじぼたる４ タイトルどうが"></video>
     <button type="button" id="btnPlayOpening" class="opening-play">タップして はじめる</button>
-    <button type="button" id="btnSkipOpening" class="opening-skip">アプリへ すすむ</button>
   </section>
 
   <svg id="svgHelper" style="position:fixed; top:-9999px; left:-9999px; width:109px; height:109px; visibility:hidden; pointer-events:none;" viewBox="0 0 109 109">
@@ -111,28 +110,21 @@
         </section>
         <section class="saved-lessons-section" id="savedLessonsPanel" hidden="">
           <div class="lesson-section-head"><h3>とうろくした おだい</h3></div>
-          <p>えらぶと、したの おだいと いれかわるよ。</p>
+          <p>えらぶと、おだいの もじが かわるよ。</p>
           <div id="savedLessonList" class="saved-lesson-list"></div>
           <details class="archived-lessons"><summary>しまった おだい</summary><div id="archivedLessonList" class="saved-lesson-list"></div></details>
         </section>
-        <section class="lesson-queue-section" id="lessonQueuePanel" hidden="">
-          <h3>おだいの じゅんばん</h3><p>ひとつの おだいを かきおえたら、つぎの おだいへ すすむよ。</p>
-          <ol id="lessonQueueList"></ol><button class="btn" id="btnClearLessonQueue">ならびを けす</button>
-        </section>
-        <details class="lesson-registration" id="lessonRegistration"><summary>おだいを とうろく・なおす</summary>
-          <h3 id="lessonEditorTitle">いま つくっている おだいを のこす</h3>
-          <label>なまえ（つけなくても いいよ）<input class="text-input" id="customLabel" maxlength="32" placeholder="たとえば：どうぶつ"></label>
-          <div class="lesson-form-actions"><button class="btn" id="btnSaveLesson">とうろくする</button><button class="btn" id="btnCancelLessonEdit" hidden="">なおすのを やめる</button><button class="btn" id="btnSaveCurrentLesson">れんしゅうちゅうの おだいを のこす</button></div>
-        </details>
       </div>
       <div class="selection-composer">
         <p id="selectionOrientationHint" class="orientation-hint" role="status" hidden=""></p>
-        <div class="practice-mode-tabs" aria-label="れんしゅうの しかた"><button class="btn" id="btnSingleMode" aria-pressed="true">ひとつの おだい</button><button class="btn" id="btnSequenceMode" aria-pressed="false">おだいを ならべる</button></div>
+        <div class="practice-mode-tabs" aria-label="れんしゅうの しかた"><button class="btn" id="btnSingleMode" aria-pressed="true">ひとつの おだい</button><button class="btn" id="btnSequenceMode" aria-pressed="false">れんぞく おだい</button></div>
         <div class="draft-heading"><strong id="draftTitle">いま つくっている おだい</strong><span id="draftCount">0 / 20もじ</span></div>
         <div id="lessonDraftPreview" class="lesson-draft-preview" aria-label="つくっている おだい"></div>
+        <div class="quick-registration" id="quickRegistration"><input type="hidden" id="customLabel"><button type="button" class="btn" id="btnSaveLesson">このおだいをとうろくする</button><button type="button" class="btn" id="btnCancelLessonEdit" hidden>なおすのを やめる</button></div>
         <div class="draft-tools"><button class="btn" id="btnDraftBackspace">１もじ けす</button><button class="btn" id="btnDraftClear">ぜんぶ けす</button><button class="btn" id="btnQueueDraft" hidden="">この おだいを ならべて、つぎを つくる</button></div>
         <details class="manual-entry"><summary>キーボードで いれる</summary><label>もじや ことば<input type="text" class="text-input" id="customInput" placeholder="20もじまで" maxlength="40" autocomplete="off"></label></details>
         <p id="lessonStatus" class="lesson-status" role="status"></p>
+        <section class="lesson-queue-section" id="lessonQueuePanel" hidden><div class="queue-header"><h3>おだいの じゅんばん</h3><button class="btn" id="btnClearLessonQueue">ならびを けす</button></div><ol id="lessonQueueList"></ol></section>
         <button class="btn btn-primary selection-start" id="btnApplyCustom" disabled="">この おだいで はじめる</button>
         <button class="btn btn-primary selection-start" id="btnStartLessonQueue" hidden="" disabled="">ならべた おだいで はじめる</button>
       </div>
@@ -141,7 +133,7 @@
 
   <div class="modal-overlay" id="modalRecord" role="dialog" aria-modal="true" aria-labelledby="albumTitle">
     <div class="modal album-modal">
-      <div class="modal-head album-cover-head"><div class="album-title-wrap"><div class="album-title-firefly hotaruko-bust" role="img" aria-label="ほたるこちゃん"></div><div><span class="album-owner">わたしの</span><h2 id="albumTitle"><ruby>作品帳<rt>さくひんちょう</rt></ruby></h2></div></div><button class="btn album-close" id="btnCloseRecord"><span aria-hidden="true">×</span> とじる</button></div>
+      <div class="modal-head album-cover-head"><div class="album-title-wrap"><div class="album-title-firefly hotaruko-bust" role="img" aria-label="ほたるこちゃん"></div><div><h2 id="albumTitle"><ruby>作品帳<rt>さくひんちょう</rt></ruby></h2></div></div><button class="btn album-close" id="btnCloseRecord"><span aria-hidden="true">×</span> とじる</button></div>
       <div class="modal-body" aria-live="polite"></div>
     </div>
   </div>
@@ -218,11 +210,11 @@
           <input type="range" class="slider" id="sldOpac" min="10" max="100" value="100">
         </div>
 
-      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作㉕</small></div></div>
+      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作㉘</small></div></div>
     </div>
   </div>
 
-<script src="runtime.js?v=0.25.0"></script>
+<script src="runtime.js?v=0.28.0"></script>
 
 
 </body></html>

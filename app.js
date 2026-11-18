@@ -252,6 +252,8 @@
         this.showGuide = true;
         this.currentCategoryTab = 'hiragana';
         this.knownChars=new Set();this.lessonSequence=[];this.lessonIndex=0;
+        const progress=window.monjiStationProgress||{};
+        this.stationProgress={completed:Number.isSafeInteger(progress.completed)&&progress.completed>=0?progress.completed:0,recent:Array.isArray(progress.recent)?progress.recent.filter(id=>typeof id==='string').slice(-128):[]};
         
         // もんじぼたる設定
         this.baseOpacity = 1.0;
@@ -468,22 +470,47 @@
         this.setWord(words[0],null,true);
         document.getElementById('modalSelect').classList.remove('open');return true;
       }
+      recordStationCompletion(){
+        if(!this.chars.length||!this.chars.every((_,i)=>this.sessions[i]?.complete))return;
+        if(!this.stationCounted){
+          if(!this.stationProgress.recent.includes(this.practiceId)){
+            this.stationProgress.completed++;this.stationProgress.recent.push(this.practiceId);this.stationProgress.recent=this.stationProgress.recent.slice(-128);
+            const copy={completed:this.stationProgress.completed,recent:[...this.stationProgress.recent]};
+            window.monjiStationProgress=copy;this.archive.saveState('stationJourney',copy).catch(()=>this.storageStatus(false));
+          }
+          this.stationCounted=true;this.stationScene=globalThis.MonjiStations?.forCount(this.stationProgress.completed).id||'seaside';
+        }
+      }
       showPracticeEnd(){
+        this.recordStationCompletion();
         this.departedPractice=this.practiceId;
         this.journey?.showFinale(this.sessions,{
           hasNext:!!this.lessonSequence?.[this.lessonIndex+1],
+          station:globalThis.MonjiStations?.byId(this.stationScene||'seaside'),
           again:()=>this.setWord(this.word,null,true),
-          next:()=>{
-            if(this.lessonSequence?.[this.lessonIndex+1]){this.lessonIndex++;this.setWord(this.lessonSequence[this.lessonIndex],null,true);}
-            else document.getElementById('btnOpenSelect').click();
-          }
+          next:()=>this.departFinale()
+
         });
+        if(this.finishing)for(const button of this.journey?.finale?.querySelectorAll('button')||[])button.disabled=true;
         this.hanamaru.classList.remove('show');this.saveDraft();
       }
       async finishPractice(){
-        if(!this.orientationReady() || this.transitioning || this.departedPractice===this.practiceId)return;
-        if(this.journey?.canBookend())await this.runTrainScene('departure');
-        else this.showPracticeEnd();
+        if(this.transitioning||this.departedPractice===this.practiceId)return;
+        this.showPracticeEnd();
+      }
+      async departFinale(){
+        if(this.transitioning||this.finishing||!this.journey?.finale)return;
+        this.transitioning=true;
+        const practice=this.practiceId,header=Array.from(document.querySelectorAll('header button')).map(button=>[button,button.disabled]);
+        for(const [button]of header)button.disabled=true;
+        this.coachSay('しゅっぱつ、しんこう！','praise');speech.play('complete');
+        let departed=false;
+        try{departed=await this.journey.departFinale(duration=>sound.train(duration));}
+        finally{this.transitioning=false;for(const [button,disabled]of header)button.disabled=disabled;}
+        if(!departed){speech.cancel();this.coachSay('ぜんぶ かけたね！','praise');return;}
+        if(practice!==this.practiceId)return;
+        if(this.lessonSequence?.[this.lessonIndex+1]){this.lessonIndex++;await this.setWord(this.lessonSequence[this.lessonIndex],null,true);}
+        else document.getElementById('btnOpenSelect').click();
       }
       async setWord(w, draft = null, keepSequence = false) {
         if (!w || !w.trim() || this.finishing || this.transitioning) return;
@@ -499,6 +526,7 @@
         document.getElementById('btnTools').disabled=false;
         this.chars = Array.from(this.word);
         const matchingDraft = draft?.word === this.word;this.awaitingArrival=!matchingDraft;
+        this.stationCounted=!!(matchingDraft&&draft.stationCounted);this.stationScene=matchingDraft?draft.stationScene:null;
         this.sessions = matchingDraft && Array.isArray(draft.items) ? draft.items : [];
         this.practiceId = matchingDraft && typeof draft.practiceId === 'string' ? draft.practiceId : null;
         this.practiceStartedAt = matchingDraft && draft.practiceStartedAt ? draft.practiceStartedAt : null;
@@ -886,7 +914,7 @@
           const body=mSel?.querySelector('.modal-body');if(body)body.scrollTop=0;
         });
         onClk('btnWelcomeSelect',()=>document.getElementById('btnOpenSelect').click());
-        onClk('btnCloseSelect', () => { if (mSel) mSel.classList.remove('open'); });
+        onClk('btnCloseSelect', () => { if (mSel) mSel.classList.remove('open');if(this.journey?.finale?.classList.contains('finale-departed'))this.showPracticeEnd(); });
         onClk('btnSettings', () => { if (mSet) mSet.classList.add('open'); });
         onClk('btnCloseSettings', () => { if (mSet) mSet.classList.remove('open'); });
 
@@ -1052,7 +1080,7 @@
       saveDraft() {
         if(!this.word)return;
         this.rememberCurrent();
-        const draft = { word: this.word, index: this.cIdx, items: this.sessions, practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt, sequence:this.lessonSequence||[],sequenceIndex:this.lessonIndex||0,trainTheme:this.trainTheme,finished:this.departedPractice===this.practiceId };
+        const draft = { word: this.word, index: this.cIdx, items: this.sessions, practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt, sequence:this.lessonSequence||[],sequenceIndex:this.lessonIndex||0,trainTheme:this.trainTheme,stationCounted:!!this.stationCounted,stationScene:this.stationScene,finished:this.departedPractice===this.practiceId };
         const copy = typeof structuredClone === 'function' ? structuredClone(draft) : JSON.parse(JSON.stringify(draft));
         this.archive.saveState('draft', copy).catch(() => this.storageStatus(false));
       }
@@ -1152,7 +1180,7 @@
         const suspend = event => {
           clearTimeout(this.autoAdvanceTimer);
           this.travelGeneration = (this.travelGeneration || 0) + 1;
-          if (this.journey?.animation) this.journey.animation.finish();
+          if (this.journey?.animation){if(this.journey.finale?.classList.contains('finale-departing'))this.journey.animation.cancel();else this.journey.animation.finish();}
           sound.stopTrain?.();
           clearTimeout(this.stopRequestTimer);
           this.isDown = false; this.pointerId = null; this.drawing = []; this.renderDrawing();
@@ -1220,10 +1248,7 @@
         if(!this.chars.length)return;
         const allDone=this.chars.every((_,i)=>this.sessions[i]?.complete);
         if(allDone && this.departedPractice!==this.practiceId) {
-          const practice=this.practiceId;
-          this.autoAdvanceTimer=setTimeout(()=>{
-            if(practice===this.practiceId && !document.hidden && !document.querySelector('.modal-overlay.open')) this.finishPractice();
-          },1200);
+          this.finishPractice();
           return;
         }
         if (!this.display?.auto || this.cIdx >= this.chars.length - 1) return;
@@ -1472,6 +1497,8 @@
             visibleSec: this.hotaru.visibleSec, hiddenSec: this.hotaru.hiddenSec, width: this.W, height: this.H },
           formatVersion: 2, favorite: false, source: globalThis.MonjiBundledStrokes?.characters?.[ch]
             ? 'KanjiVG bundled snapshot ' + globalThis.MonjiBundledStrokes.snapshot : 'KanjiVG (remote/cache)' };
+        const allDone=this.chars.every((_,i)=>this.sessions[i]?.complete);
+        if(allDone){this.coachSay('ぜんぶ かけたね！','praise');this.showPracticeEnd();}
         if (!entry.archived) {
           try {
             await this.archive.put(record); entry.archived = true; delete this.unsavedRecords[record.id];
@@ -1479,16 +1506,12 @@
             this.storageStatus(true);
           } catch { this.unsavedRecords[record.id] = record; this.storageStatus(false); }
         }
-        this.finishing = false; this.render(); this.renderPills(); this.saveDraft();
+        this.finishing = false;
+        for(const button of this.journey?.finale?.querySelectorAll('button')||[])button.disabled=false;
+        this.render(); this.renderPills(); this.saveDraft();
         this.hanamaru.classList.remove('show');
         this.knownChars?.add(ch);
-        const allDone=this.chars.every((_,i)=>this.sessions[i]?.complete);
-        if(allDone){
-          this.coachSay('ぜんぶ かけました！ しゅっぱつ、しんこう〜','praise');
-          speech.play('complete');
-        }else{
-          const coach=document.getElementById('hotarukoCoach');if(coach)coach.dataset.pose='guide';
-        }
+        if(!allDone){const coach=document.getElementById('hotarukoCoach');if(coach)coach.dataset.pose='guide';}
         this.scheduleAdvance();
       }
 
@@ -1550,8 +1573,8 @@
       window.monjiArchive = new StrokeArchive();
       let storageError = false;
       try {
-        [window.monjiSettings, window.monjiDraft] = await Promise.all([
-          monjiArchive.state('settings'), monjiArchive.state('draft')]);
+        [window.monjiSettings, window.monjiDraft, window.monjiStationProgress] = await Promise.all([
+          monjiArchive.state('settings'), monjiArchive.state('draft'),monjiArchive.state('stationJourney')]);
       } catch { storageError = true; }
       try {
         if(!globalThis.MonjiLessons?.LessonLibrary)throw new Error("文字選択機能を読み込めませんでした");

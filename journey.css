@@ -92,3 +92,28 @@ body {min-height:620px;}
 
 /* Opacity hides the full compositor layer; child visibility:visible cannot override it. */
 .journey.journey-preparing>.journey-track,.journey.arrival-pending>.journey-track,.journey.word-finished>.journey-track,.journey.orientation-blocked>.journey-track {opacity:0!important;pointer-events:none;}
+
+/* A quiet coastal station appears only after the child's work is complete. */
+.journey-finale {background:#dce9d7 url('assets/seaside-station.svg') center/cover no-repeat;overflow:hidden;gap:14px;}
+.journey-finale h2 {position:relative;z-index:2;padding:8px 20px;border-radius:18px;background:#fffcf0e8;box-shadow:0 3px 14px #46665014;flex:none;}
+.station-train-zone {position:relative;display:flex;align-items:flex-end;justify-content:center;flex:1;width:100%;min-height:0;padding-bottom:24px;isolation:isolate;}
+.station-train-zone::after {content:'';position:absolute;bottom:8px;left:-20px;right:-20px;height:14px;border-top:4px solid #6f8175;border-bottom:4px solid #6f8175;background:repeating-linear-gradient(90deg,transparent 0 25px,#a7977b 25px 35px,transparent 35px 55px);z-index:-1;}
+.station-train-zone .whole-train {position:relative;will-change:transform;}
+.finale-actions {position:relative;z-index:2;flex:none;padding:8px 12px;background:#fffcf0e8;border-radius:18px;}
+.finale-departing .finale-actions {visibility:hidden;pointer-events:none;}
+.journey[data-direction="vertical"] .journey-finale {background-image:url('assets/seaside-station-top.svg');}
+.journey[data-direction="vertical"] .station-train-zone {align-items:center;padding:0;}
+.journey[data-direction="vertical"] .station-train-zone::after {top:0;bottom:0;left:calc(50% - var(--whole-car-size)*.35);right:auto;width:calc(var(--whole-car-size)*.7);height:auto;border:0;border-left:3px solid #6f8175;border-right:3px solid #6f8175;background:repeating-linear-gradient(0deg,transparent 0 19px,#a7977b 19px 25px,transparent 25px 40px);}
+.quick-registration {display:flex;gap:8px;flex-wrap:wrap;}
+#modalSelect .quick-registration>.btn {width:100%;min-height:44px;background:#edf5e4;border-color:#aec69b;font-size:15px;}
+
+@media(orientation:landscape) and (max-height:500px){
+ .journey-finale {padding:8px;gap:6px;}
+ .journey-finale h2 {font-size:16px;padding:4px 12px;}
+ .finale-actions {padding:4px 8px;gap:8px;}
+ .finale-actions>.btn {font-size:13px;min-height:32px;padding:5px 10px;}
+ .station-train-zone {padding-bottom:18px;}
+ .station-train-zone::after {bottom:2px;height:10px;}
+}
+
+.station-name {display:block;margin-top:3px;font-size:12px;font-weight:400;letter-spacing:.08em;color:#567564;}

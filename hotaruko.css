@@ -23,7 +23,7 @@
 .journey[data-direction="horizontal"] .locomotive-car>.cab-driver {display:block;left:34.4%;top:8%;width:52.3%;height:49%;z-index:1;}
 @media(max-width:700px){.coach{gap:8px;padding-right:10px;min-height:94px;}.coach-character{width:44px;height:88px;}.coach .coach-copy p{font-size:14px;}.driver-overview{width:60px;}.locomotive{width:52px;height:61px;}}
 
-.hotaruko-bust {background-image:url('assets/hotaruko/poses.png');background-repeat:no-repeat;background-size:400% auto;background-position:66.6667% top;overflow:hidden;border-radius:20px;}
+.hotaruko-bust {background-image:url('assets/hotaruko/album-bust.png');background-repeat:no-repeat;background-size:contain;background-position:center bottom;overflow:hidden;border-radius:16px;}
 #modalRecord .album-title-firefly {height:78px;}
 #modalRecord .album-firefly {height:100px;}
 #modalRecord .album-title-firefly {display:block;}

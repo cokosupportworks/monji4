@@ -51,7 +51,7 @@
         this.onSelect?.(index,event);
       },true);
       this.observer=new ResizeObserver(()=>{
-        if(this.animation){this.animation.finish();return;}
+        if(this.animation){if(this.finale?.classList.contains('finale-departing'))this.animation.cancel();else this.animation.finish();return;}
         if(this.layout())this.onResize();
       });this.observer.observe(this.viewport);
     }
@@ -113,7 +113,9 @@
       if(!this.finale)return;
       const count=(this.chars?.length||1)+1,vertical=this.display.direction==='vertical';
       const extra=40+(vertical?28:52)+(this.finale.querySelector('h2')?.offsetHeight||40)+(this.finale.querySelector('.finale-actions')?.offsetHeight||60);
-      const width=Math.max(1,this.viewport.clientWidth-40),height=Math.max(1,this.viewport.clientHeight-extra);
+      const zone=this.finale.querySelector('.station-train-zone');
+      const width=Math.max(1,this.viewport.clientWidth-40);
+      const height=Math.max(1,zone?.clientHeight?Math.min(zone.clientHeight-(vertical?0:24),this.viewport.clientHeight-40):this.viewport.clientHeight-extra);
       const size=Math.max(1,Math.floor(Math.min(180,vertical?width:width/count,vertical?height/count*480/560:height*480/560)));
       this.finale.style.setProperty('--whole-car-size',size+'px');
     }
@@ -122,6 +124,7 @@
       this.revealPrepared();this.clearFinale();this.viewport.classList.add('word-finished');
       const panel=document.createElement('section');panel.className='journey-finale';panel.setAttribute('aria-label','かきおわった でんしゃ');
       const title=document.createElement('h2');title.textContent='ぜんぶ かけたね！';
+      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.28.0")`;const name=document.createElement('small');name.className='station-name';name.textContent=actions.station.name;title.append(name);}
       const strip=document.createElement('div');strip.className='whole-train';strip.style.setProperty('--train-count',String(this.chars.length+1));
       const art=artwork(this.display.direction);
       const engine=document.createElement('div');engine.className='whole-train-car locomotive-car';
@@ -139,7 +142,34 @@
       const buttons=document.createElement('div');buttons.className='finale-actions';
       const again=document.createElement('button');again.className='btn btn-primary';again.textContent='もういっかい';again.onclick=actions.again;
       const next=document.createElement('button');next.className='btn';next.textContent=actions.hasNext?'つぎのおだい':'おだいをえらぶ';next.onclick=actions.next;
-      buttons.append(again,next);panel.append(title,strip,buttons);this.viewport.append(panel);this.finale=panel;this.layoutFinale();
+      const zone=document.createElement('div');zone.className='station-train-zone';zone.append(strip);
+      buttons.append(again,next);panel.append(title,zone,buttons);this.viewport.append(panel);this.finale=panel;this.layoutFinale();
+    }
+    async departFinale(onStart){
+      const panel=this.finale;if(!panel)return false;
+      const strip=panel.querySelector('.whole-train'),buttons=panel.querySelectorAll('button');
+      for(const button of buttons)button.disabled=true;
+      panel.classList.add('finale-departing');
+      const vertical=this.display.direction==='vertical',extent=vertical?this.viewport.clientHeight:this.viewport.clientWidth;
+      const span=vertical?(strip.offsetHeight||extent):(strip.offsetWidth||extent),distance=-(extent+span+120);
+      const reduced=this.display.reduced||root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      const duration=4200;
+      let animation,stopSound;
+      try{
+        if(strip.animate){
+          const frames=reduced?[{opacity:1,offset:0},{opacity:1,offset:.92},{opacity:0,offset:1}]:[
+            {transform:'translate(0,0)',offset:0},
+            {transform:vertical?'translateY(-12px)':'translateX(-12px)',offset:.12},
+            {transform:vertical?`translateY(${distance}px)`:`translateX(${distance}px)`,offset:1}];
+          animation=strip.animate(frames,{duration,easing:'ease-in',fill:'forwards'});this.animation=animation;
+          stopSound=onStart?.(duration);await animation.finished;
+        }
+        strip.style.visibility='hidden';panel.classList.add('finale-departed');return true;
+      }catch{return false;}
+      finally{
+        stopSound?.();animation?.cancel?.();if(this.animation===animation)this.animation=null;
+        if(!panel.classList.contains('finale-departed')){panel.classList.remove('finale-departing');for(const button of buttons)button.disabled=false;}
+      }
     }
     setArtwork(){
       const art=artwork(this.display.direction);this.rail.style.backgroundImage=`url("${art.rail}")`;

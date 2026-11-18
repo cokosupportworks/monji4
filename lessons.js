@@ -13,14 +13,13 @@
   constructor(options){
    this.options=options;this.archive=options.archive;this.records=[];this.generation=0;this.queue=[];this.mode='single';
    const get=id=>document.getElementById(id);this.word=get('customInput');this.label=get('customLabel');this.status=get('lessonStatus');
-   this.save=get('btnSaveLesson');this.start=get('btnApplyCustom');this.cancel=get('btnCancelLessonEdit');this.current=get('btnSaveCurrentLesson');
+   this.save=get('btnSaveLesson');this.start=get('btnApplyCustom');this.cancel=get('btnCancelLessonEdit');
    this.list=get('savedLessonList');this.trash=get('archivedLessonList');
    this.save.onclick=()=>this.saveWord({id:this.editingId,word:this.word.value,label:this.label.value},false);
    this.start.onclick=()=>{
     try{const data=normalize({word:this.word.value});if(!this.checkStartOrientation(this.start))return;if(this.options.start(data.word)===false)this.say('いまの もじが おちついてから、もういちど おしてね。');}
     catch(error){this.say(error.childMessage||'もじを たしかめてね。');}
    };
-   this.current.onclick=()=>this.saveWord({word:this.options.currentWord()});
    this.cancel.onclick=()=>this.clearEditor();
    get('btnOpenSelect').addEventListener('click',()=>{this.setSource('keys');this.syncDraft();this.refresh();});
    this.queueList=get('lessonQueueList');this.queueStart=get('btnStartLessonQueue');
@@ -31,7 +30,7 @@
      if(this.options.startSequence?.(words)===false)this.say('いまの もじが おちついてから、おしてね。');
     }catch(error){this.say(error.childMessage||'おだいを たしかめてね。');}
    };
-   get('btnClearLessonQueue').onclick=()=>{this.queue=[];this.drawQueue();};
+   get('btnClearLessonQueue').onclick=()=>{this.queue=[];this.clearEditor();};
    for(const [id,kind]of [['btnDakuten','dakuten'],['btnHandakuten','handakuten'],['btnSmallKana','small']])get(id).onclick=()=>this.modifyLast(kind);
    get('btnSourceKeys').onclick=()=>this.setSource('keys');get('btnSourceSaved').onclick=()=>this.setSource('saved');
    get('btnSingleMode').onclick=()=>this.setMode('single');get('btnSequenceMode').onclick=()=>this.setMode('sequence');
@@ -73,36 +72,68 @@
    if(!next){this.say('この もじは かえられないよ。ほかの もじを えらんでね。');return;}
    chars[chars.length-1]=next;this.word.value=chars.join('');this.syncDraft();this.say('');
   }
-  choose(record){if(this.busy)return;this.editingId=null;this.cancel.hidden=true;this.save.textContent='とうろくする';document.getElementById('lessonEditorTitle').textContent='いま つくっている おだいを のこす';this.word.value=record.word;this.label.value='';this.syncDraft();this.say('おだいに いれたよ。たしかめてから「はじめる」を おしてね。');}
+  choose(record){if(this.busy)return;this.selectedLessonId=record.id;this.updateSelection();this.editingId=null;this.cancel.hidden=true;this.save.textContent='このおだいをとうろくする';this.word.value=record.word;this.label.value='';this.syncDraft();this.say('おだいに いれたよ。たしかめてから「はじめる」を おしてね。');}
   syncDraft(){
-   const chars=Array.from(this.word.value.normalize('NFC')),preview=document.getElementById('lessonDraftPreview');preview.replaceChildren();
-   if(!chars.length){const hint=document.createElement('span');hint.className='draft-placeholder';hint.textContent='うえの もじを おしてね';preview.append(hint);}
-   for(const char of chars){const tile=document.createElement('span');tile.className='draft-character';tile.textContent=char;preview.append(tile);}
+   const chars=Array.from(this.word.value.normalize('NFC')),preview=document.getElementById('lessonDraftPreview');
+   const word=chars.join('');
+   if(word!==this.previewWord){
+    if(!chars.length){preview.replaceChildren();const hint=document.createElement('span');hint.className='draft-placeholder';hint.textContent='うえの もじを おしてね';preview.append(hint);}
+    else{
+     if(preview.children[0]?.classList.contains('draft-placeholder'))preview.replaceChildren();
+     for(let i=0;i<chars.length;i++){let tile=preview.children[i];if(!tile){tile=document.createElement('span');tile.className='draft-character';preview.append(tile);}if(tile.textContent!==chars[i])tile.textContent=chars[i];}
+     while(preview.children.length>chars.length)preview.children[preview.children.length-1].remove();
+    }
+    this.previewWord=word;
+   }
+   const selected=this.records.find(r=>r.id===this.selectedLessonId);if(selected&&selected.word!==word)this.selectedLessonId=null;
+   this.updateSelection();
    document.getElementById('draftCount').textContent=chars.length+' / 20もじ';
    let valid=true;try{normalize({word:this.word.value});}catch{valid=false;}
    document.getElementById('draftTitle').textContent=this.mode==='sequence'?(this.queue.length+1)+'こめの おだい':'いま つくっている おだい';
-   this.start.disabled=this.busy||!valid;document.getElementById('btnQueueDraft').disabled=this.busy||!valid||this.queue.length>=20;
+   this.save.disabled=this.busy||!valid;this.start.disabled=this.busy||!valid;document.getElementById('btnQueueDraft').disabled=this.busy||!valid||this.queue.length>=20;
    document.getElementById('btnDraftBackspace').disabled=!chars.length;document.getElementById('btnDraftClear').disabled=!chars.length;
    const count=this.queue.length+(this.word.value.trim()?1:0);
    this.queueStart.disabled=this.busy||count===0||count>20||!!this.word.value.trim()&&!valid;
    this.queueStart.textContent=count?count+'この おだいで はじめる':'ならべた おだいで はじめる';
+   this.renderQueue();
   }
   addQueue(word){if(this.queue.length>=20){this.say('おだいは 20こまで ならべられるよ。');return false;}this.queue.push(word);this.drawQueue();return true;}
-  drawQueue(){
-   this.queueList.replaceChildren();this.queueStart.disabled=!this.queue.length;
-   this.queue.forEach((word,index)=>{const item=document.createElement('li');const label=document.createElement('span');label.textContent=word;const remove=document.createElement('button');remove.className='btn';remove.textContent='はずす';remove.setAttribute('aria-label',`${index+1}こめを はずす`);remove.onclick=()=>{this.queue.splice(index,1);this.drawQueue();};const up=document.createElement('button'),down=document.createElement('button');up.className=down.className='btn';up.textContent='まえへ';down.textContent='あとへ';up.disabled=index===0;down.disabled=index===this.queue.length-1;up.onclick=()=>{if(index>0){[this.queue[index-1],this.queue[index]]=[this.queue[index],this.queue[index-1]];this.drawQueue();}};down.onclick=()=>{if(index<this.queue.length-1){[this.queue[index+1],this.queue[index]]=[this.queue[index],this.queue[index+1]];this.drawQueue();}};item.append(label,up,down,remove);this.queueList.append(item);});this.syncDraft();
+  drawQueue(){this.syncDraft();}
+  renderQueue(){
+   const pending=this.word.value.trim(),entries=[...this.queue,...(pending?[pending]:[])];
+   const signature=JSON.stringify([this.queue.length,...entries]);if(signature===this.queueSignature)return;this.queueSignature=signature;
+   const follow=!!pending||this.queue.length>(this.queueShownLength||0);this.queueShownLength=this.queue.length;
+   this.queueList.replaceChildren();
+   entries.forEach((word,index)=>{
+    const draft=index===this.queue.length,item=document.createElement('li');item.className=draft?'queue-current':'';
+    item.dataset.word=word;item.dataset.pending=String(draft);const label=document.createElement('span');label.textContent=(index+1)+'．'+word;
+    if(draft){const badge=document.createElement('small');badge.className='queue-draft-badge';badge.textContent='いまの おだい';label.append(badge);}
+    const remove=document.createElement('button');remove.className='btn';remove.textContent='はずす';remove.setAttribute('aria-label',`${index+1}こめを はずす`);remove.onclick=()=>{if(draft)this.clearEditor();else{this.queue.splice(index,1);this.drawQueue();}};
+    const move=delta=>{
+     if(entries.length>20){this.say('おだいは 20こまで ならべられるよ。');return;}
+     if(pending){try{normalize({word:pending});}catch(error){this.say(error.childMessage);return;}this.queue.push(pending);this.word.value='';this.editingId=null;this.label.value='';this.cancel.hidden=true;this.save.textContent='このおだいをとうろくする';}
+     const next=index+delta;if(next<0||next>=this.queue.length)return;
+     [this.queue[index],this.queue[next]]=[this.queue[next],this.queue[index]];this.drawQueue();
+    };
+    const up=document.createElement('button'),down=document.createElement('button');up.className=down.className='btn';up.textContent='まえへ';down.textContent='あとへ';up.disabled=index===0;down.disabled=index===entries.length-1;up.onclick=()=>move(-1);down.onclick=()=>move(1);
+    item.append(label,up,down,remove);this.queueList.append(item);
+   });
+   if(follow)this.queueList.scrollTop=this.queueList.scrollHeight||0;
+  }
+  updateSelection(){
+   for(const row of this.list.querySelectorAll('.saved-lesson')){const selected=row.dataset.lessonId===this.selectedLessonId;row.classList.toggle('is-selected',selected);row.querySelector('.saved-lesson-choice')?.setAttribute('aria-pressed',String(selected));}
   }
   say(text){this.status.textContent=text;}
-  lock(busy){this.busy=busy;for(const button of [this.save,this.start,this.current,this.cancel])button.disabled=busy;this.syncDraft();}
+  lock(busy){this.busy=busy;for(const button of [this.save,this.start,this.cancel])button.disabled=busy;for(const button of this.list.querySelectorAll('.saved-lesson-choice'))button.disabled=busy;this.syncDraft();}
   clearEditor(){
    this.editingId=null;this.word.value='';this.label.value='';this.cancel.hidden=true;
-   this.save.textContent='とうろくする';document.getElementById('lessonEditorTitle').textContent='いま つくっている おだいを のこす';this.syncDraft();
+   this.save.textContent='このおだいをとうろくする';this.syncDraft();
   }
   edit(record){
    if(this.busy)return;this.editingId=record.id;this.word.value=record.word;this.label.value=record.label===record.word?'':record.label;
-   this.cancel.hidden=false;this.save.textContent='これで のこす';document.getElementById('lessonEditorTitle').textContent='おだいを なおそう';
-   this.say('もじや なまえを なおして、「これで のこす」を おしてね。');
-   document.getElementById('lessonRegistration').open=true;this.syncDraft();document.getElementById('lessonRegistration').scrollIntoView?.({block:'nearest',behavior:'auto'});
+   this.cancel.hidden=false;this.save.textContent='このおだいに かきかえる';
+   this.say('もじを なおして、「このおだいに かきかえる」を おしてね。');
+   this.syncDraft();document.getElementById('quickRegistration').scrollIntoView?.({block:'nearest',behavior:'auto'});
   }
   async refresh(){
    const token=++this.generation;
@@ -115,8 +146,8 @@
    this.lock(true);
    try{
     const result=await this.archive.saveLesson({...data,label:input.label});
-    this.lastSavedId=result.lesson.id;
-    if(clear)this.clearEditor();else{this.editingId=null;this.cancel.hidden=true;this.save.textContent='とうろくする';this.syncDraft();}
+    this.lastSavedId=result.lesson.id;this.selectedLessonId=result.lesson.id;
+    if(clear)this.clearEditor();else{this.editingId=null;this.label.value='';this.cancel.hidden=true;this.save.textContent='このおだいをとうろくする';this.syncDraft();}
     if(!await this.refresh()){this.say('おだいは のこしたよ。いちらんを ひらきなおしてね。');return;}
     this.say(result.action==='restored'?'おだいを もどしたよ。':result.action==='existing'?'この おだいは、もう あるよ。':result.action==='updated'?'おだいを なおしたよ。':'おだいを とうろくしたよ。「とうろくした おだい」から えらべるよ。');
    }catch(error){this.say(error.childMessage||'おだいを のこせなかったよ。おとなのひとに おしえてね。');}
@@ -134,8 +165,8 @@
    const active=matches.filter(record=>!record.archived),archived=matches.filter(record=>record.archived);
    let shown=0;const more=document.createElement('button');more.className='btn lesson-more';more.textContent='もっと みる';
    const card=(record,restoring)=>{
-    const row=document.createElement('div');row.className='saved-lesson';row.dataset.lessonId=record.id;row.classList.toggle('is-recent',record.id===this.lastSavedId);
-    const choose=document.createElement('button');choose.type='button';choose.className='saved-lesson-choice';
+    const row=document.createElement('div');row.className='saved-lesson';row.dataset.lessonId=record.id;row.classList.toggle('is-selected',!restoring&&record.id===this.selectedLessonId);
+    const choose=document.createElement('button');choose.type='button';choose.className='saved-lesson-choice';choose.disabled=!!this.busy;choose.setAttribute('aria-pressed',String(!restoring&&record.id===this.selectedLessonId));
     const label=document.createElement('strong');label.textContent=record.label;
     const text=document.createElement('span');text.textContent=record.label===record.word?'おだいに いれる':record.word;
     choose.append(label,text);choose.onclick=()=>this.choose(record);

@@ -1,9 +1,9 @@
 {
   "name": "monjibotaru4-prototype",
-  "version": "0.25.0",
+  "version": "0.28.0",
   "private": true,
   "scripts": {
-    "test": "node build.cjs --check && node tests/startup-bundle.cjs && node tests/opening.cjs && node tests/revision23.cjs && node tests/revision22.cjs && node tests/regression.cjs && node tests/fixed.cjs && node tests/pencil-tools.cjs && node tests/journey.cjs && node tests/performance.cjs && node tests/word-archive.cjs && node tests/album-design.cjs && node tests/teacher-metadata.cjs && node tests/assisted-history.cjs && node tests/child-practice.cjs && node tests/hotaruko.cjs && node tests/train-scenes.cjs && node tests/revision11.cjs && node tests/selection-flow.cjs && node tests/orientation-flow.cjs && node tests/orientation-popup.cjs && node tests/reset-audio.cjs && node tests/mobile-start-speech.cjs && node tests/hotaruko-voice.cjs && node tests/real-strokes.cjs",
+    "test": "node build.cjs --check && node tests/startup-bundle.cjs && node tests/opening.cjs && node tests/revision26.cjs && node tests/revision27.cjs && node tests/revision23.cjs && node tests/revision22.cjs && node tests/regression.cjs && node tests/fixed.cjs && node tests/pencil-tools.cjs && node tests/journey.cjs && node tests/performance.cjs && node tests/word-archive.cjs && node tests/album-design.cjs && node tests/teacher-metadata.cjs && node tests/assisted-history.cjs && node tests/child-practice.cjs && node tests/hotaruko.cjs && node tests/train-scenes.cjs && node tests/revision11.cjs && node tests/selection-flow.cjs && node tests/orientation-flow.cjs && node tests/orientation-popup.cjs && node tests/reset-audio.cjs && node tests/mobile-start-speech.cjs && node tests/hotaruko-voice.cjs && node tests/real-strokes.cjs",
     "build": "node build.cjs"
   },
   "devDependencies": {
