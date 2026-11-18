@@ -242,6 +242,24 @@
       return entry.sizes.get(key);
     }
 
+    const placedGlyphs=new WeakMap();
+    function sampleCharacterPath(d,w,h,char,paths,direction){
+      if(!char||!'ぁぃぅぇぉゃゅょっゎゕゖァィゥェォャュョッヮヵヶ'.includes(char)||!paths)return samplePath(d,w,h);
+      if(!placedGlyphs.has(paths))placedGlyphs.set(paths,new Map());
+      const cache=placedGlyphs.get(paths),key=char+'|'+direction;
+      if(!cache.has(key)){
+        const transform=MonjiCore.kanaPlacement(char,paths.map(path=>samplePath(path,460,460)),direction),lines=new Map();
+        for(const path of paths)lines.set(path,samplePath(path,460,460).map(p=>({x:p.x*transform.scale+transform.x,y:p.y*transform.scale+transform.y})));
+        cache.set(key,{lines,sizes:new Map()});
+      }
+      const glyph=cache.get(key);if(w===460&&h===460)return glyph.lines.get(d)||[];
+      const sizeKey=w+':'+h;if(!glyph.sizes.has(sizeKey)){
+        const lines=new Map();for(const[path,points]of glyph.lines)lines.set(path,points.map(p=>({x:p.x*w/460,y:p.y*h/460})));glyph.sizes.set(sizeKey,lines);
+        if(glyph.sizes.size>3)glyph.sizes.delete(glyph.sizes.keys().next().value);
+      }
+      return glyph.sizes.get(sizeKey).get(d)||[];
+    }
+
     // 5. Strict Stroke Evaluator
     const evaluateStroke = MonjiCore.evaluate;
 
@@ -494,6 +512,7 @@
         this.departedPractice=this.practiceId;
         this.journey?.showFinale(this.sessions,{
           hasNext:!!this.lessonSequence?.[this.lessonIndex+1],
+          alreadyLeft:!!this.trainHasLeft,
           station:globalThis.MonjiStations?.byId(this.stationScene||'seaside'),
           again:()=>this.setWord(this.word,null,true),
           next:()=>this.departFinale()
@@ -507,7 +526,8 @@
         this.showPracticeEnd();
       }
       async departFinale(){
-        if(this.transitioning||this.finishing||!this.journey?.finale)return;
+        if(this.trainHasLeft||this.transitioning||this.finishing||!this.journey?.finale)return;
+        this.trainHasLeft=true;this.saveDraft();
         this.transitioning=true;
         const practice=this.practiceId,header=Array.from(document.querySelectorAll('header button')).map(button=>[button,button.disabled]);
         for(const [button]of header)button.disabled=true;
@@ -517,6 +537,7 @@
         finally{this.transitioning=false;for(const [button,disabled]of header)button.disabled=disabled;}
         if(!departed){speech.cancel();this.coachSay('ぜんぶ かけたね！','praise');return;}
         if(practice!==this.practiceId)return;
+        this.trainHasLeft=true;this.saveDraft();
         if(this.lessonSequence?.[this.lessonIndex+1]){this.lessonIndex++;await this.setWord(this.lessonSequence[this.lessonIndex],null,true);}
         else document.getElementById('btnOpenSelect').click();
       }
@@ -536,6 +557,7 @@
         document.getElementById('btnTools').disabled=false;
         this.chars = Array.from(this.word);
         const matchingDraft = draft?.word === this.word;this.awaitingArrival=!matchingDraft;
+        this.trainHasLeft=!!(matchingDraft&&draft.trainHasLeft);
         this.stationCounted=!!(matchingDraft&&draft.stationCounted);this.stationScene=matchingDraft?draft.stationScene:null;
         this.sessions = matchingDraft && Array.isArray(draft.items) ? draft.items : [];
         this.practiceId = matchingDraft && typeof draft.practiceId === 'string' ? draft.practiceId : null;
@@ -681,7 +703,7 @@
           document.getElementById('curStroke').textContent = Math.min(strokes.length, this.sIdx + 1);
           document.getElementById('totalStroke').textContent = strokes.length;
           this.setNotice(''); this.render(); this.saveDraft();
-          this.journey?.refresh(this.chars, index, this.sessions, loader, samplePath);
+          this.journey?.refresh(this.chars, index, this.sessions, loader, sampleCharacterPath);
           if (this.sIdx >= strokes.length) {
             this.hanamaru.classList.remove('show');
             if (!previous.archived) this.finishChar();
@@ -703,6 +725,8 @@
         if (event) this.beginPointer(event);
       }
 
+      sampleStroke(d,w,h){return sampleCharacterPath(d,w,h,this.chars[this.cIdx],this.strokes,this.display.direction);}
+
       render() {
         // 描画エンジンを分離し、必要なレイヤーだけを更新できるように最適化
         this.renderTemplate();
@@ -719,7 +743,7 @@
         ctx.save(); ctx.scale(this.W / 460, this.H / 460);
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         this.strokes.forEach((d, i) => {
-          const pts = samplePath(d, 460, 460);
+          const pts = this.sampleStroke(d, 460, 460);
           if (pts.length === 0) return;
 
           if (i >= this.sIdx) {
@@ -934,7 +958,7 @@
           const body=mSel?.querySelector('.modal-body');if(body)body.scrollTop=0;
         });
         onClk('btnWelcomeSelect',()=>document.getElementById('btnOpenSelect').click());
-        onClk('btnCloseSelect', () => { if (mSel) mSel.classList.remove('open');if(this.journey?.finale?.classList.contains('finale-departed'))this.showPracticeEnd(); });
+        onClk('btnCloseSelect', () => { if (mSel) mSel.classList.remove('open'); });
         onClk('btnSettings', () => { if (mSet) mSet.classList.add('open'); });
         onClk('btnCloseSettings', () => { if (mSet) mSet.classList.remove('open'); });
 
@@ -1100,7 +1124,7 @@
       saveDraft() {
         if(!this.word)return;
         this.rememberCurrent();
-        const draft = { word: this.word, index: this.cIdx, items: this.sessions, practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt, sequence:this.lessonSequence||[],sequenceIndex:this.lessonIndex||0,trainTheme:this.trainTheme,stationCounted:!!this.stationCounted,stationScene:this.stationScene,finished:this.departedPractice===this.practiceId };
+        const draft = { word: this.word, index: this.cIdx, items: this.sessions, practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt, sequence:this.lessonSequence||[],sequenceIndex:this.lessonIndex||0,trainTheme:this.trainTheme,stationCounted:!!this.stationCounted,stationScene:this.stationScene,trainHasLeft:!!this.trainHasLeft,finished:this.departedPractice===this.practiceId };
         const copy = typeof structuredClone === 'function' ? structuredClone(draft) : JSON.parse(JSON.stringify(draft));
         this.archive.saveState('draft', copy).catch(() => this.storageStatus(false));
       }
@@ -1171,7 +1195,7 @@
         document.getElementById('btnReset').onclick = () => this.resetAttempt();
         document.getElementById('btnSkip').onclick = () => {
           if (!this.inputEnabled() || this.isDown) return;
-          this.userStrokes[this.sIdx] = samplePath(this.strokes[this.sIdx], this.W, this.H);
+          this.userStrokes[this.sIdx] = this.sampleStroke(this.strokes[this.sIdx], this.W, this.H);
           this.skipped[this.sIdx] = true;
           this.sIdx++; this.saveDraft();
           if (this.sIdx >= this.strokes.length) this.finishChar();
@@ -1213,7 +1237,7 @@
         });
         document.addEventListener('visibilitychange', () => {
           if (document.hidden){suspend();speech.cancel();sound.retire();}
-          else {sound.init();speech.unlock();if(this.welcomeVoicePending)this.playWelcomeVoice();if(this.inputEnabled()&&this.hotaru.enabled)this.startHotaru();}
+          else {sound.init();speech.unlock();if(this.welcomeVoicePending)this.playWelcomeVoice();this.updateOrientation();}
         });
         window.addEventListener('pagehide', () => {suspend();speech.cancel();sound.retire();});
         window.addEventListener('pageshow', () => {if(!document.hidden){sound.init();speech.unlock();}});
@@ -1254,7 +1278,7 @@
           this.display.mode = document.getElementById('journey-mode').value;
           for (const key of ['train','reduced','auto']) this.display[key] = document.getElementById('journey-' + key).checked;
           this.rememberCurrent();this.journey.beginReset(); this.journey.apply(this.display); this.resize(); this.render(); this.saveSettings();
-          this.journey.refresh(this.chars, this.cIdx, this.sessions, loader, samplePath).then(()=>{
+          this.journey.refresh(this.chars, this.cIdx, this.sessions, loader, sampleCharacterPath).then(()=>{
             if(this.departedPractice===this.practiceId)this.showPracticeEnd();
             else if(!this.awaitingArrival)this.journey.revealPrepared();
             this.updateOrientation();
@@ -1293,14 +1317,14 @@
           if (token !== this.travelGeneration || document.hidden || document.querySelector('.modal-overlay.open')) return;
           if (this.journey) await this.journey.move(index - previous,duration=>sound.train(duration));
           if (token !== this.travelGeneration || document.hidden || document.querySelector('.modal-overlay.open')) {
-            this.journey?.refresh(this.chars, previous, this.sessions, loader, samplePath);
+            this.journey?.refresh(this.chars, previous, this.sessions, loader, sampleCharacterPath);
             return;
           }
           this.cIdx = index; this.travelLoading = true;
           await this.loadChar();
         } catch {
           this.showToast('つぎの もじを ひらけなかったよ。おとなのひとに おしえてね。');
-          this.journey?.refresh(this.chars, previous, this.sessions, loader, samplePath);
+          this.journey?.refresh(this.chars, previous, this.sessions, loader, sampleCharacterPath);
         } finally {
           this.travelLoading = false; this.transitioning = false;
           this.journey?.viewport.classList.remove('moving');
@@ -1486,7 +1510,7 @@
 
       checkStroke() {
         if (this.loading || this.sIdx >= this.strokes.length) return;
-        const target = samplePath(this.strokes[this.sIdx], 460, 460);
+        const target = this.sampleStroke(this.strokes[this.sIdx], 460, 460);
         const scale = 460 / this.W;
         const normalize = pts => pts.map(p => ({ x: p.x * scale, y: p.y * scale }));
         const res = evaluateStroke(target, normalize(this.drawing), this.params[this.level]);
@@ -1522,7 +1546,9 @@
         if(allDone){this.coachSay('ぜんぶ かけたね！','praise');this.showPracticeEnd();}
         if (!entry.archived) {
           try {
-            await this.archive.put(record); entry.archived = true; delete this.unsavedRecords[record.id];
+            await this.archive.put(record); entry.archived = true;
+            if(this.sessions[index]?.id===entry.id)this.sessions[index].archived=true;
+            delete this.unsavedRecords[record.id];
             if (!record.assisted) this.saveHistoryRecord(ch);
             this.storageStatus(true);
           } catch { this.unsavedRecords[record.id] = record; this.storageStatus(false); }
@@ -1554,7 +1580,7 @@
       playDemo() {
         if (!this.inputEnabled() || this.isDown) return;
         this.stopAnim();
-        const target = samplePath(this.strokes[this.sIdx], this.W, this.H);
+        const target = this.sampleStroke(this.strokes[this.sIdx], this.W, this.H);
         if (target.length === 0) return;
 
         let frame = 0, total = 45;

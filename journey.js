@@ -28,6 +28,16 @@
     return {...best,size:Math.max(1,Math.floor(best.size))};
   }
 
+  function finaleLayout(count,width,height,direction,titleHeight=60,actionsHeight=64){
+    const pad=height<260?8:16,gap=pad,top=titleHeight+pad+gap,bottom=actionsHeight+pad+gap;
+    const available=Math.max(1,height-top-bottom),vertical=direction==='vertical';
+    const size=Math.max(1,Math.floor(Math.min(180,(width-2*pad)/(vertical?1:count),available*480/(vertical?count*560:544))));
+    const railY=height-bottom,scale=vertical?Math.max(width/900,height/1400):Math.max(width/1600,height/900,railY/720,(height-railY)/180);
+    return {size,railY,top,available,trainTop:vertical?top:railY-size*544/480,
+      backgroundWidth:(vertical?900:1600)*scale,backgroundHeight:(vertical?1400:900)*scale,
+      backgroundX:(width-(vertical?900:1600)*scale)/2,backgroundY:vertical?(height-1400*scale)/2:railY-720*scale};
+  }
+
   class JourneyView {
     constructor(stage, onResize, onSelect) {
       this.stage=stage;this.onResize=onResize;this.onSelect=onSelect;
@@ -127,20 +137,22 @@
     }
     layoutFinale(){
       if(!this.finale)return;
-      const count=(this.chars?.length||1)+1,vertical=this.display.direction==='vertical';
-      const extra=40+(vertical?28:52)+(this.finale.querySelector('h2')?.offsetHeight||40)+(this.finale.querySelector('.finale-actions')?.offsetHeight||60);
-      const zone=this.finale.querySelector('.station-train-zone');
-      const width=Math.max(1,this.viewport.clientWidth-40);
-      const height=Math.max(1,zone?.clientHeight?Math.min(zone.clientHeight-(vertical?0:24),this.viewport.clientHeight-40):this.viewport.clientHeight-extra);
-      const size=Math.max(1,Math.floor(Math.min(180,vertical?width:width/count,vertical?height/count*480/560:height*480/560)));
-      this.finale.style.setProperty('--whole-car-size',size+'px');
+      const vertical=this.display.direction==='vertical';
+      const layout=finaleLayout((this.chars?.length||1)+1,this.viewport.clientWidth,this.viewport.clientHeight,this.display.direction,
+        this.finale.querySelector('h2')?.offsetHeight||60,this.finale.querySelector('.finale-actions')?.offsetHeight||64);
+      this.finale.style.setProperty('--whole-car-size',layout.size+'px');
+      this.finale.style.setProperty('--station-rail-y',layout.railY+'px');
+      this.finale.style.setProperty('--station-train-top',layout.trainTop+'px');
+      this.finale.style.setProperty('--station-zone-height',(vertical?layout.available:layout.size*560/480)+'px');
+      this.finale.style.backgroundSize=layout.backgroundWidth+'px '+layout.backgroundHeight+'px';
+      this.finale.style.backgroundPosition=layout.backgroundX+'px '+layout.backgroundY+'px';
     }
     clearFinale(){this.finale?.remove();this.finale=null;this.viewport.classList.remove('word-finished');}
     showFinale(sessions,actions){
       this.revealPrepared();this.clearFinale();this.viewport.classList.add('word-finished');
       const panel=document.createElement('section');panel.className='journey-finale';panel.setAttribute('aria-label','かきおわった でんしゃ');
       const title=document.createElement('h2');title.textContent='ぜんぶ かけたね！';
-      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.29.0")`;const name=document.createElement('small');name.className='station-name';name.textContent=actions.station.name;title.append(name);}
+      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.31.0")`;const name=document.createElement('small');name.className='station-name';name.textContent=actions.station.name;title.append(name);}
       const strip=document.createElement('div');strip.className='whole-train';strip.style.setProperty('--train-count',String(this.chars.length+1));
       const art=artwork(this.display.direction);
       const engine=document.createElement('div');engine.className='whole-train-car locomotive-car';
@@ -159,10 +171,12 @@
       const again=document.createElement('button');again.className='btn btn-primary';again.textContent='もういっかい';again.onclick=actions.again;
       const next=document.createElement('button');next.className='btn';next.textContent=actions.hasNext?'つぎのおだい':'おだいをえらぶ';next.onclick=actions.next;
       const zone=document.createElement('div');zone.className='station-train-zone';zone.append(strip);
-      buttons.append(again,next);panel.append(title,zone,buttons);this.viewport.append(panel);this.finale=panel;this.layoutFinale();
+      const rail=document.createElement('div');rail.className='finale-rail';rail.setAttribute('aria-hidden','true');
+      if(actions.alreadyLeft){strip.style.visibility='hidden';panel.classList.add('finale-departed','finale-departing');for(const button of [again,next])button.disabled=true;}
+      buttons.append(again,next);panel.append(rail,title,zone,buttons);this.viewport.append(panel);this.finale=panel;this.layoutFinale();
     }
     async departFinale(onStart){
-      const panel=this.finale;if(!panel)return false;
+      const panel=this.finale;if(!panel||panel.classList.contains('finale-departed'))return false;
       const strip=panel.querySelector('.whole-train'),buttons=panel.querySelectorAll('button');
       for(const button of buttons)button.disabled=true;
       panel.classList.add('finale-departing');
@@ -181,7 +195,7 @@
           stopSound=onStart?.(duration);await animation.finished;
         }
         strip.style.visibility='hidden';panel.classList.add('finale-departed');return true;
-      }catch{return false;}
+      }catch{strip.style.visibility='hidden';panel.classList.add('finale-departed');return true;}
       finally{
         stopSound?.();animation?.cancel?.();if(this.animation===animation)this.animation=null;
         if(!panel.classList.contains('finale-departed')){panel.classList.remove('finale-departing');for(const button of buttons)button.disabled=false;}
@@ -254,7 +268,7 @@
         if(!points.length)return;ctx.lineCap=ctx.lineJoin='round';ctx.lineWidth=12;ctx.strokeStyle=color;
         ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);for(const p of points.slice(1))ctx.lineTo(p.x,p.y);ctx.stroke();
       };
-      if(!saved?.complete&&this.sample)for(const path of paths)stroke(model,this.sample(path,400,400),'#b9c4b5');
+      if(!saved?.complete&&this.sample)for(const path of paths)stroke(model,this.sample(path,400,400,this.chars[index],paths,this.display.direction),'#b9c4b5');
       for(const [i,line]of (saved?.strokes||[]).entries())stroke(ink,line.map(p=>({x:p.x*400,y:p.y*400})),saved.skipped?.[i]?'#94a3b8':'#30483d');
     }
     updateSnapshot(index,saved){
@@ -319,5 +333,5 @@
     }
   }
   root.JourneyView=JourneyView;root.MonjiTrainColor=trainColor;root.MonjiOrientationMatches=orientationMatches;
-  if(typeof module!=='undefined')module.exports={JourneyView,artwork,motion,fixedLayout,trainColor,orientationMatches};
+  if(typeof module!=='undefined')module.exports={JourneyView,artwork,motion,fixedLayout,trainColor,orientationMatches,finaleLayout};
 })(globalThis);
