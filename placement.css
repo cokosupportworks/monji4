@@ -1,0 +1,11 @@
+/* Background projection, wheel contact and rails share one station coordinate system. */
+.journey-finale {display:block;padding:0;background-repeat:no-repeat;}
+.journey-finale h2 {position:absolute;top:16px;left:50%;transform:translateX(-50%);margin:0;width:max-content;max-width:calc(100% - 32px);text-align:center;z-index:3;}
+.journey-finale .finale-actions {position:absolute;bottom:16px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);width:max-content;z-index:3;}
+.journey-finale .station-train-zone {position:absolute;left:0;right:0;top:var(--station-train-top);height:var(--station-zone-height);width:100%;padding:0;display:flex;align-items:flex-start;justify-content:center;z-index:2;}
+.journey-finale .station-train-zone::after {content:none;}
+.journey-finale .finale-rail {position:absolute;top:var(--station-rail-y);left:0;right:0;height:14px;border-top:4px solid #6f8175;border-bottom:4px solid #6f8175;background:repeating-linear-gradient(90deg,transparent 0 25px,#a7977b 25px 35px,transparent 35px 55px);z-index:1;}
+.journey[data-direction="horizontal"] .whole-train .locomotive-car {top:calc(var(--whole-car-size)*8/480);}
+.journey[data-direction="vertical"] .journey-finale .station-train-zone {align-items:center;padding:0;}
+.journey[data-direction="vertical"] .journey-finale .finale-rail {top:0;bottom:0;left:calc(50% - var(--whole-car-size)*.35);right:auto;width:calc(var(--whole-car-size)*.7);height:100%;max-height:none;margin:0;border:0;border-left:3px solid #6f8175;border-right:3px solid #6f8175;background:repeating-linear-gradient(0deg,transparent 0 19px,#a7977b 19px 25px,transparent 25px 40px);}
+@media(orientation:landscape) and (max-height:500px){.journey-finale h2{top:8px;}.journey-finale .finale-actions{bottom:8px;}}

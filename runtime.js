@@ -583,6 +583,10 @@ globalThis.MonjiBundledStrokes = {"snapshot":"2026-11-15","characters":{"ひ":["
       const vertical=this.display.direction==='vertical';
       const layout=finaleLayout((this.chars?.length||1)+1,this.viewport.clientWidth,this.viewport.clientHeight,this.display.direction,
         0,this.finale.querySelector('.finale-actions')?.offsetHeight||64);
+      // The rail belongs to the full background, not the shorter train zone.
+      // Pin its actual height as well as its CSS edges, including after resize/exit.
+      const rail=this.finale.querySelector('.finale-rail');
+      if(rail){rail.style.top=vertical?'0px':layout.railY+'px';rail.style.bottom='auto';rail.style.height=vertical?this.viewport.clientHeight+'px':'14px';}
       this.finale.style.setProperty('--whole-car-size',layout.size+'px');
       this.finale.style.setProperty('--station-rail-y',layout.railY+'px');
       this.finale.style.setProperty('--station-train-top',layout.trainTop+'px');
@@ -594,7 +598,7 @@ globalThis.MonjiBundledStrokes = {"snapshot":"2026-11-15","characters":{"ひ":["
     showFinale(sessions,actions){
       this.revealPrepared();this.clearFinale();this.viewport.classList.add('word-finished');
       const panel=document.createElement('section');panel.className='journey-finale';panel.setAttribute('aria-label','かきおわった でんしゃ');
-      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.49.0")`;}
+      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.50.0")`;}
       const strip=document.createElement('div');strip.className='whole-train';strip.style.setProperty('--train-count',String(this.chars.length+1));
       const art=artwork(this.display.direction);
       const engine=document.createElement('div');engine.className='whole-train-car locomotive-car';
