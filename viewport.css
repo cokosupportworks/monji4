@@ -1,0 +1,49 @@
+/* Allocate one visible screen after the status bar, browser chrome and home area. */
+html {height:100%;overflow:hidden;}
+body {height:100vh;height:100dvh;min-height:0;max-height:100dvh;overflow:hidden;}
+header {flex:0 0 auto;min-width:0;}
+main {flex:1 1 0;min-height:0;max-height:100%;grid-template-rows:minmax(0,1fr);}
+.center-container {height:100%;min-height:0;max-height:100%;max-width:none;min-width:0;}
+.journey {flex:1 1 0;min-height:0;}
+.storage-area {flex:0 0 auto;}
+.storage-area:has(#storageStatus:empty) {display:none;}
+/* Keep the portrait and frame anchored while showing the entire message. */
+.coach-copy {flex:1 1 0;min-width:0;height:100%;max-height:none;overflow:visible;display:flex;flex-direction:column;justify-content:center;}
+.coach .coach-copy span {flex:none;line-height:1.2;margin-bottom:3px;}
+.coach .coach-copy p {flex:none;line-height:1.3;overflow-wrap:anywhere;}
+@media(orientation:portrait){
+ header {padding:6px 12px;gap:5px 10px;}
+ .actions {flex-wrap:nowrap;}
+ .actions>.btn {min-height:36px;font-size:13px;padding:5px 9px;}
+ .actions>.settings-gear {width:38px;min-width:38px;min-height:36px;}
+ .settings-gear img {width:24px;height:24px;}
+ .word-overview {gap:2px;}
+ .word-progress {font-size:12px;line-height:1.3;}
+ .word-pills {height:48px;max-width:100%;width:min(100%,calc(var(--word-count,1)*42px));grid-template-columns:repeat(var(--word-count,1),minmax(0,1fr));padding:1px;gap:3px;}
+ .word-pill.word-slot {height:46px;position:relative;min-width:0;padding:2px;}
+ canvas.word-thumb {width:100%;height:32px;max-width:34px;object-fit:contain;}
+ .slot-number {position:absolute;right:3px;bottom:1px;font-size:9px;line-height:1;}
+ main {padding:8px;gap:0;}
+ .coach {margin-top:8px;}
+ .coach .coach-copy p {font-size:clamp(18px,2.8vw,24px);}
+ .storage-area {font-size:10px;line-height:1.3;padding:2px 8px;}
+}
+@media(orientation:portrait) and (max-width:700px){
+ header {grid-template-columns:minmax(0,1fr);padding:5px 8px;gap:4px;}
+ .logo {font-size:17px;line-height:1.3;}
+ .actions {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.3fr) minmax(0,.65fr) 36px;gap:4px;width:100%;}
+ .actions>.btn {min-width:0;min-height:36px;font-size:clamp(10px,2.8vw,13px);padding:4px 2px;justify-content:center;}
+ .actions>.settings-gear {width:36px;min-width:36px;}
+ #btnTools {min-width:0;}
+ .word-pills {height:38px;width:min(100%,calc(var(--word-count,1)*34px));}
+ .word-pill.word-slot {height:36px;border-width:1px;}
+ canvas.word-thumb {height:24px;max-width:26px;}
+ main {padding:5px;}
+ .coach {height:94px;padding:6px 8px;margin-top:6px;}
+ .coach-main {padding-left:129px;}
+ .coach-character {width:120.9375px;height:108px;bottom:-6px;}
+ .coach .coach-copy span {font-size:10px;line-height:1.2;margin-bottom:2px;}
+ .coach .coach-copy p {font-size:clamp(14px,4.2vw,18px);line-height:1.28;}
+ .journey[data-direction="vertical"] .counter {font-size:10px;padding:3px 5px;right:calc(100% + var(--car-size)*.1 + 4px);}
+ .journey[data-direction="vertical"] .counter span {font-size:11px;}
+}

@@ -594,7 +594,7 @@ globalThis.MonjiBundledStrokes = {"snapshot":"2026-11-15","characters":{"ひ":["
     showFinale(sessions,actions){
       this.revealPrepared();this.clearFinale();this.viewport.classList.add('word-finished');
       const panel=document.createElement('section');panel.className='journey-finale';panel.setAttribute('aria-label','かきおわった でんしゃ');
-      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.48.0")`;}
+      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.49.0")`;}
       const strip=document.createElement('div');strip.className='whole-train';strip.style.setProperty('--train-count',String(this.chars.length+1));
       const art=artwork(this.display.direction);
       const engine=document.createElement('div');engine.className='whole-train-car locomotive-car';
@@ -1501,6 +1501,12 @@ globalThis.MonjiBundledStrokes = {"snapshot":"2026-11-15","characters":{"ひ":["
         this.journey = new JourneyView(this.stage, () => { this.resize(); this.render(); }, (index,event) => this.selectFixed(index,event));
         this.journey.apply(this.display); this.resize();
         this.bindJourneyEvents();
+        if(typeof ResizeObserver==='function'){
+          this.coachResizeObserver=new ResizeObserver(()=>this.fitCoachMessage());
+          const coach=document.getElementById('hotarukoCoach');if(coach)this.coachResizeObserver.observe(coach);
+        }
+        document.fonts?.ready?.then(()=>this.fitCoachMessage());
+        window.visualViewport?.addEventListener('resize',()=>{this.resize();this.render();this.fitCoachMessage();});
         this.updateOrientation();
         this.journey.beginReset();
         this.setNotice('');
@@ -1599,6 +1605,7 @@ globalThis.MonjiBundledStrokes = {"snapshot":"2026-11-15","characters":{"ひ":["
       }
 
       resize() {
+        this.fitCoachMessage();
         const w = this.stage.clientWidth || 460, h = this.stage.clientHeight || 460,dpr=window.devicePixelRatio||1;
         if(w===this.W&&h===this.H&&dpr===this.pixelRatio)return false;
         this.cancelDrawingFrame();
@@ -1877,6 +1884,18 @@ globalThis.MonjiBundledStrokes = {"snapshot":"2026-11-15","characters":{"ひ":["
         const coach = document.getElementById('hotarukoCoach');
         if (coach) coach.dataset.pose = pose;
         document.getElementById('coachMessage').textContent = message;
+        this.fitCoachMessage();
+      }
+      fitCoachMessage(){
+        const message=document.getElementById('coachMessage'),copy=message?.parentNode;
+        if(!message||!copy||!window.getComputedStyle||!copy.clientHeight||!message.clientWidth)return;
+        message.style.fontSize='';
+        const preferred=parseFloat(window.getComputedStyle(message).fontSize);
+        if(!Number.isFinite(preferred))return;
+        // Restore the responsive preferred size for every message, then fit all lines.
+        for(let size=preferred;copy.scrollHeight>copy.clientHeight&&size>12;){
+          size=Math.max(12,size-1);message.style.fontSize=size+'px';
+        }
       }
 
       installChar(index, strokes) {

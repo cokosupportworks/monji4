@@ -440,6 +440,12 @@
         this.journey = new JourneyView(this.stage, () => { this.resize(); this.render(); }, (index,event) => this.selectFixed(index,event));
         this.journey.apply(this.display); this.resize();
         this.bindJourneyEvents();
+        if(typeof ResizeObserver==='function'){
+          this.coachResizeObserver=new ResizeObserver(()=>this.fitCoachMessage());
+          const coach=document.getElementById('hotarukoCoach');if(coach)this.coachResizeObserver.observe(coach);
+        }
+        document.fonts?.ready?.then(()=>this.fitCoachMessage());
+        window.visualViewport?.addEventListener('resize',()=>{this.resize();this.render();this.fitCoachMessage();});
         this.updateOrientation();
         this.journey.beginReset();
         this.setNotice('');
@@ -538,6 +544,7 @@
       }
 
       resize() {
+        this.fitCoachMessage();
         const w = this.stage.clientWidth || 460, h = this.stage.clientHeight || 460,dpr=window.devicePixelRatio||1;
         if(w===this.W&&h===this.H&&dpr===this.pixelRatio)return false;
         this.cancelDrawingFrame();
@@ -816,6 +823,18 @@
         const coach = document.getElementById('hotarukoCoach');
         if (coach) coach.dataset.pose = pose;
         document.getElementById('coachMessage').textContent = message;
+        this.fitCoachMessage();
+      }
+      fitCoachMessage(){
+        const message=document.getElementById('coachMessage'),copy=message?.parentNode;
+        if(!message||!copy||!window.getComputedStyle||!copy.clientHeight||!message.clientWidth)return;
+        message.style.fontSize='';
+        const preferred=parseFloat(window.getComputedStyle(message).fontSize);
+        if(!Number.isFinite(preferred))return;
+        // Restore the responsive preferred size for every message, then fit all lines.
+        for(let size=preferred;copy.scrollHeight>copy.clientHeight&&size>12;){
+          size=Math.max(12,size-1);message.style.fontSize=size+'px';
+        }
       }
 
       installChar(index, strokes) {
