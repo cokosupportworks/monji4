@@ -14,7 +14,7 @@
    this.video.addEventListener('timeupdate',()=>this.observeProgress());
    this.video.addEventListener('pause',()=>{if(!this.finished)this.showPlay();});
    this.video.addEventListener('canplay',()=>{if(this.userRequested&&!this.needsGesture&&!this.progressing)this.play();});
-   for(const event of ['waiting','stalled'])this.video.addEventListener(event,()=>{if(!this.finished){this.showPlay();if(this.status){this.status.hidden=false;this.status.textContent='どうがを よみこんでいるよ。もうすこし まってね。';}}});
+   for(const event of ['waiting','stalled'])this.video.addEventListener(event,()=>{if(!this.finished){this.showPlay();if(this.status){this.status.hidden=false;this.status.textContent='よみこみちゅうです。おまちください。';}}});
    this.button.onclick=()=>this.play(true);
    this.screen.addEventListener('click',event=>{if((event.target===this.screen||event.target===this.video)&&!this.progressing)this.play(true);});
    this.watchdog=setInterval(()=>{
@@ -30,7 +30,7 @@
    this.progressing=false;this.button.hidden=false;this.button.disabled=false;
    const loading=typeof this.video.readyState==='number'&&this.video.readyState<2;
    if(!loading)this.retryLoad=false;
-   if(this.status){this.status.hidden=!loading;this.status.textContent='どうがを よみこんでいるよ。もうすこし まってね。';}
+   if(this.status){this.status.hidden=!loading;this.status.textContent='よみこみちゅうです。おまちください。';}
    if(loading&&this.userRequested&&!this.needsGesture){
     const retry=performance.now()-this.attemptAt>=10000;this.retryLoad=retry;
     this.button.disabled=!retry;this.button.textContent=retry?'もういちど よみこむ':'よみこみちゅう…';

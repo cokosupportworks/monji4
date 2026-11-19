@@ -6,8 +6,8 @@
     class Sound {
       constructor() { this.ctx = null; this.on = true; }
       retire(){
-        this.stopTrain?.();this.stopTrain=null;this.stopFeedback?.();this.stopFeedback=null;
-        const ctx=this.ctx;this.ctx=null;this.noiseBuffer=null;this.ready=null;
+        this.stopScene();this.stopFeedback?.();this.stopFeedback=null;
+        const ctx=this.ctx;this.ctx=null;this.noiseBuffer=null;this.airBuffer=null;this.railNoiseBuffer=null;this.ready=null;
         try{Promise.resolve(ctx?.close?.()).catch(()=>{});}catch{}
       }
       init() {
@@ -47,38 +47,142 @@
           o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.25);
         } catch(e){}
       }
-      train(duration, delay=0) {
-        this.stopTrain?.();
+      stopScene(keepTrain=false){
+        for(const slot of ['stopTrain','stopAir','stopDoor','stopBell','stopChime']){if(keepTrain&&slot==='stopTrain')continue;this[slot]?.();this[slot]=null;}
+      }
+      // Every scene uses the existing gesture-unlocked context and owns all its sources.
+      railwayEffect(slot,duration,build){
+        this[slot]?.();
         if(!this.on)return()=>{};this.init();
-        let active=true;const voices=[],deadline=performance.now()+duration+delay;
-        const stop=()=>{active=false;for(const voice of voices)try{voice.stop();}catch(e){}};
-        this.stopTrain=stop;
+        let active=true,pending=0;const sources=[],nodes=[],requested=performance.now();
+        const cleanup=()=>{for(const node of nodes)node.disconnect?.();if(this[slot]===stop)this[slot]=null;};
+        const stop=()=>{if(!active)return;active=false;for(const source of sources)try{source.stop();}catch{}cleanup();};
+        this[slot]=stop;
         this.whenReady(ctx=>{
-          try {
-            const t=ctx.currentTime+delay/1000;
-            if(ctx.createBuffer&&!this.noiseBuffer){
-              this.noiseBuffer=ctx.createBuffer(1,Math.ceil((ctx.sampleRate||44100)*.07),ctx.sampleRate||44100);
-              const data=this.noiseBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/data.length*4);
+          try{
+            const now=ctx.currentTime,end=now+duration,master=ctx.createGain();
+            master.gain.setValueAtTime(.72,now);master.connect(ctx.destination);nodes.push(master);
+            const gain=(value,target=master)=>{const g=ctx.createGain();g.gain.setValueAtTime(value,now);g.connect(target);nodes.push(g);return g;};
+            const filter=(type,freq,q=1)=>{if(!ctx.createBiquadFilter)return null;const f=ctx.createBiquadFilter();f.type=type;f.frequency.setValueAtTime(freq,now);f.Q.setValueAtTime(q,now);nodes.push(f);return f;};
+            const play=(source,at,length)=>{
+              const finish=Math.min(at+length,end);if(finish<=at)return;
+              sources.push(source);nodes.push(source);pending++;
+              source.onended=()=>{if(--pending===0&&active){active=false;cleanup();}};
+              source.start(at);source.stop(finish);
+            };
+            const tone=(type,from,to,at,length,volume,target=master)=>{
+              length=Math.min(length,end-at);if(length<.008)return;
+              const o=ctx.createOscillator(),g=gain(.001,target);o.type=type;
+              o.frequency.setValueAtTime(from,at);if(from!==to)o.frequency.exponentialRampToValueAtTime(to,at+length*.85);
+              g.gain.setValueAtTime(.001,at);g.gain.exponentialRampToValueAtTime(Math.max(.001,volume),at+.004);g.gain.exponentialRampToValueAtTime(.001,at+length);
+              o.connect(g);play(o,at,length);return o;
+            };
+            build({ctx,now,end,master,gain,filter,play,tone,nodes});
+            if(!sources.length){active=false;cleanup();}
+          }catch(error){this.lastError=error;stop();}
+        },()=>active&&!document.hidden&&performance.now()-requested<500);
+        return stop;
+      }
+      railwayNoise(ctx,pink=false){
+        const key=pink?'railNoiseBuffer':'airBuffer';if(this[key])return this[key];
+        const rate=ctx.sampleRate||44100,buffer=ctx.createBuffer(1,Math.ceil(rate*2),rate),data=buffer.getChannelData(0);
+        let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+        for(let i=0;i<data.length;i++){
+          const white=Math.random()*2-1;
+          if(pink){
+            b0=.99886*b0+white*.0555179;b1=.99332*b1+white*.0750759;b2=.969*b2+white*.153852;
+            b3=.8665*b3+white*.3104856;b4=.55*b4+white*.5329522;b5=-.7616*b5-white*.016898;
+            data[i]=(b0+b1+b2+b3+b4+b5+b6+white*.5362)*.09;b6=white*.115926;
+          }else data[i]=white;
+        }
+        this[key]=buffer;return buffer;
+      }
+      train(duration,delay=0,motion='cruise',tailMs=0){
+        this.stopAir?.();this.stopDoor?.();
+        const motionSeconds=Math.max(.001,duration/1000),tailSeconds=Math.max(0,tailMs/1000),seconds=motionSeconds+tailSeconds;
+        return this.railwayEffect('stopTrain',(duration+delay)/1000+tailSeconds,({ctx,now,end,master,gain,filter,play,tone})=>{
+          const start=now+delay/1000;
+          const state=p=>{
+            p=Math.min(1,p);
+            const speed=motion==='arrival'?65*Math.pow(1-p,1.3):motion==='departure'?65*Math.pow(p,1.3):25;
+            const proximity=motion==='arrival' ? .25+.75*Math.min(1,p*2) : motion==='departure' ? 1-.75*p : .8;
+            return {speed,proximity};
+          };
+          let rolling,rumble,railFilter,brakeGain,brakeOsc;
+          if(ctx.createBuffer&&ctx.createBufferSource&&ctx.createBiquadFilter){
+            const buffer=this.railwayNoise(ctx,true);
+            const noiseLayer=(type,freq,q)=>{
+              const source=ctx.createBufferSource(),f=filter(type,freq,q),g=gain(.0001);source.buffer=buffer;source.loop=true;
+              source.connect(f);f.connect(g);play(source,start,seconds);return {g,f};
+            };
+            ({g:rolling,f:railFilter}=noiseLayer('bandpass',260,.6));
+            ({g:rumble}=noiseLayer('lowpass',140,.7));
+            const ambient=noiseLayer('lowpass',280,.7).g;
+            ambient.gain.setValueAtTime(.03,start);ambient.gain.exponentialRampToValueAtTime(.0001,end);
+            if(motion==='arrival'){
+              const f=filter('bandpass',2600,18);brakeGain=gain(.0001);brakeOsc=ctx.createOscillator();brakeOsc.type='sawtooth';
+              brakeOsc.frequency.setValueAtTime(2650,start);brakeOsc.connect(f);f.connect(brakeGain);play(brakeOsc,start,seconds);
             }
-            for(let beat=0;beat<duration/1000;beat+=.48)for(const shift of [0,.16]){
-              if(beat+shift>=duration/1000)continue;
-              const at=t+beat+shift,o=ctx.createOscillator(),g=ctx.createGain();
-              o.type='triangle';o.frequency.setValueAtTime(shift?460:330,at);
-              g.gain.setValueAtTime(.001,at);g.gain.exponentialRampToValueAtTime(.13,at+.004);g.gain.exponentialRampToValueAtTime(.001,at+.085);
-              o.connect(g);g.connect(ctx.destination);o.start(at);o.stop(at+.09);voices.push(o);
-              o.onended=()=>{o.disconnect?.();g.disconnect?.();};
-              if(this.noiseBuffer&&ctx.createBufferSource){
-                const clack=ctx.createBufferSource(),volume=ctx.createGain();clack.buffer=this.noiseBuffer;
-                volume.gain.setValueAtTime(.15,at);volume.gain.exponentialRampToValueAtTime(.001,at+.065);
-                const filter=ctx.createBiquadFilter?.();
-                if(filter){filter.type='bandpass';filter.frequency.setValueAtTime(1400,at);filter.Q.setValueAtTime(.7,at);clack.connect(filter);filter.connect(volume);}else clack.connect(volume);
-                volume.connect(ctx.destination);clack.start(at);clack.stop(at+.07);voices.push(clack);
-                clack.onended=()=>{clack.disconnect?.();filter?.disconnect?.();volume.disconnect?.();};
+            // Schedule finite speed automation rather than leave always-running nodes behind.
+            for(let elapsed=0;elapsed<seconds;elapsed+=.05){
+              const {speed,proximity}=state(elapsed/motionSeconds),norm=Math.min(speed/65,1),at=start+elapsed;
+              rolling.gain.setValueAtTime(Math.max(.0001,Math.pow(norm,.85)*.82*proximity),at);
+              rumble.gain.setValueAtTime(Math.max(.0001,Math.pow(norm,.75)*.68*proximity),at);
+              railFilter.frequency.setValueAtTime(160+norm*620,at);
+              if(brakeOsc){
+                brakeOsc.frequency.setValueAtTime(2480+speed*14,at);
+                brakeGain.gain.setValueAtTime(speed>1&&speed<24 ? .016*Math.sin(speed/24*Math.PI)*proximity : .0001,at);
               }
             }
-          }catch(error){this.lastError=error;}
-        },()=>active&&performance.now()<deadline);
-        return()=>{stop();if(this.stopTrain===stop)this.stopTrain=null;};
+            for(const g of [rolling,rumble,brakeGain].filter(Boolean))g.gain.exponentialRampToValueAtTime(.0001,end);
+          }
+          // Integrate speed between joints so acceleration cannot schedule a long
+          // interval using only the initial near-zero departure speed.
+          let phase=motion==='departure'?0:1,lastJoint=-1;
+          for(let elapsed=0;elapsed<seconds;elapsed+=.02){
+            const {speed,proximity}=state(elapsed/motionSeconds);
+            if(speed<=3)continue;
+            if(phase>=1&&elapsed-lastJoint>=.24-.0001){
+              phase=Math.max(0,phase-1);lastJoint=elapsed;
+              const volume=proximity*Math.min(1,.35+speed/22);
+              for(const [offset,pitch]of [[0,96],[.115,78]]){
+                const at=start+elapsed+offset;if(at>=end)continue;
+                tone('triangle',pitch,26,at,.1,.40*volume);
+                tone('square',pitch*4.5,pitch*1.2,at,.04,.10*volume);
+              }
+            }
+            phase+=.02/Math.max(.24,11/speed);
+          }
+          const fadeSeconds=motion==='cruise'?Math.min(.3,motionSeconds):.015;
+          master.gain.setValueAtTime(.72,tailSeconds?start+motionSeconds:Math.max(now,end-fadeSeconds));master.gain.exponentialRampToValueAtTime(.0001,end);
+        });
+      }
+      approach(){
+        return this.railwayEffect('stopChime',1.68,({now,master,filter,tone})=>{
+          const f=filter('bandpass',1100,1.2);if(f)f.connect(master);
+          [659.25,523.25,659.25,523.25].forEach((hz,i)=>tone('sine',hz,hz,now+i*.36,.6,.13,f||master));
+        });
+      }
+      bell(){
+        return this.railwayEffect('stopBell',2.35,({ctx,now,master,gain,filter,play,tone})=>{
+          const f=filter('bandpass',1800,.9);if(f)f.connect(master);
+          const bell=gain(.001,f||master);bell.gain.exponentialRampToValueAtTime(.09,now+.04);bell.gain.setValueAtTime(.09,now+2.22);bell.gain.exponentialRampToValueAtTime(.001,now+2.3);
+          const modulation=gain(.035,bell.gain),tremolo=ctx.createOscillator();tremolo.type='square';tremolo.frequency.setValueAtTime(22,now);tremolo.connect(modulation);play(tremolo,now,2.35);
+          [1180,1790,2410,3120].forEach((hz,i)=>tone(i%2?'sine':'triangle',hz,hz,now,2.35,.4/(i+1),bell));
+        });
+      }
+      air(duration=.65,volume=.24){
+        return this.railwayEffect('stopAir',duration,({ctx,now,master,filter,gain,play})=>{
+          const source=ctx.createBufferSource(),f=filter('highpass',1600,.7),g=gain(.001);source.buffer=this.railwayNoise(ctx);source.loop=true;
+          f.frequency.exponentialRampToValueAtTime(700,now+duration);
+          g.gain.exponentialRampToValueAtTime(volume,now+.04);g.gain.exponentialRampToValueAtTime(.001,now+duration);
+          source.connect(f);f.connect(g);play(source,now,duration);
+        });
+      }
+      door(opening){
+        const stopAir=this.air(.55,.18);
+        const stopDoor=this.railwayEffect('stopDoor',opening ? .87 : 1,({now,tone})=>tone('triangle',opening?115:85,28,now+(opening ? .72 : .85),.15,.18));
+        return()=>{stopAir();stopDoor();};
       }
       complete() {
         if (!this.on) return; this.init(); if (!this.ctx) return;
@@ -97,7 +201,7 @@
 
     // User-supplied recordings share the same unlocked audio context as the effects.
     class RecordedVoice {
-      constructor(){this.enabled=true;this.generation=0;this.buffers=new Map();this.files=new Map();this.paths={speed:'assets/voice/slow.wav',pause:'assets/voice/imagine.wav',complete:'assets/voice/complete.wav',welcome:'assets/voice/welcome.wav'};}
+      constructor(){this.enabled=true;this.generation=0;this.buffers=new Map();this.files=new Map();this.paths={speed:'assets/voice/slow.wav',pause:'assets/voice/imagine.wav',complete:'assets/voice/completed.wav',departure:'assets/voice/departure.wav',welcome:'assets/voice/welcome.wav'};}
       unlock(){
         const ctx=sound.ctx;if(!ctx?.decodeAudioData||typeof fetch!=='function')return;
         if(this.context!==ctx){this.context=ctx;this.buffers.clear();}
@@ -129,8 +233,8 @@
     const PRESETS = {
       hiragana: 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'.split(''),
       katakana: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン'.split(''),
-      kanji1: '一二三四五六七八九十百千上下左右中大小月日年早木林森山川土空田天生花草犬虫音町村男女子目耳手足見立休言字学校文本日名正水火'.split(''),
-      kanji2: '引羽雲園遠何科夏家歌画会回海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元原戸古午後語工公広交光考行'.split(''),
+      kanji1: '一右雨円王音下火花貝学気九休玉金空月犬見五口校左三山子四糸字耳七車手十出女小上森人水正生青夕石赤千川先早草足村大男竹中虫町天田土二日入年白八百文木本名目立力林六'.split(''),
+      kanji2: '引羽雲園遠何科夏家歌画回会海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元言原戸古午後語工公広交光考行高黄合谷国黒今才細作算止市矢姉思紙寺自時室社弱首秋週春書少場色食心新親図数西声星晴切雪船線前組走多太体台地池知茶昼長鳥朝直通弟店点電刀冬当東答頭同道読内南肉馬売買麦半番父風分聞米歩母方北毎妹万明鳴毛門夜野友用曜来里理話'.split(''),
       numbers: Array.from({length:61},(_,i)=>String(i))
     };
 
@@ -459,15 +563,33 @@
           const okay=document.createElement('button');okay.className='btn btn-primary';okay.textContent='わかった';
           const close=()=>{popup.classList.remove('open');this.orientationReturnFocus?.focus?.();};
           okay.onclick=close;
-          popup.addEventListener('keydown',event=>{if(event.key==='Tab'){event.preventDefault();okay.focus?.();}});
+          const change=document.createElement('button');change.className='btn btn-primary';
+          change.onclick=async()=>{
+            if(change.disabled||this.transitioning)return;
+            change.disabled=true;
+            try{
+              document.getElementById('journey-direction').value=window.innerHeight>window.innerWidth?'vertical':'horizontal';
+              await this.applyJourneySettings();
+              const start=this.orientationReturnFocus;
+              close();this.updateOrientation();
+              if(document.getElementById('modalSelect').classList.contains('open'))start?.click?.();
+            }finally{change.disabled=false;}
+          };
+          popup.addEventListener('keydown',event=>{
+            if(event.key==='Tab'){
+              event.preventDefault();
+              (document.activeElement===okay&&!change.disabled?change:okay).focus?.();
+            }
+          });
           document.addEventListener('keydown',event=>{if(event.key==='Escape'&&popup.classList.contains('open')){event.preventDefault();close();}});
-          card.append(title,message,okay);popup.append(card);document.querySelector('body').append(popup);
-          this.orientationPopup=popup;this.orientationPopupMessage=message;this.orientationPopupOkay=okay;
+          card.append(title,message,change,okay);popup.append(card);document.querySelector('body').append(popup);
+          this.orientationPopup=popup;this.orientationPopupMessage=message;this.orientationPopupOkay=okay;this.orientationPopupChange=change;
         }
         this.orientationReturnFocus=returnFocus||document.activeElement;
         this.orientationPopupMessage.textContent=this.display.direction==='vertical'
           ?'たてがきの おだいだよ。\nがめんを たてにしてね。\nそのあと「はじめる」を おしてね。'
           :'よこがきの おだいだよ。\nがめんを よこにしてね。\nそのあと「はじめる」を おしてね。';
+        this.orientationPopupChange.textContent=window.innerHeight>window.innerWidth?'たてがきに かえて つづける':'よこがきに かえて つづける';
         this.orientationPopup.classList.add('open');this.orientationPopupOkay.focus?.();
       }
       orientationReady(){return globalThis.MonjiOrientationMatches(this.display?.direction||'vertical',window.innerWidth,window.innerHeight);}
@@ -477,7 +599,7 @@
         if(hint){hint.hidden=ready;hint.textContent=this.display?.direction==='vertical'?'がめんを たてにすると はじめられるよ。':'がめんを よこにすると はじめられるよ。';}
         this.lessonLibrary?.syncDraft();
         if(!this.word)return;
-        if(!ready){this.cancelDrawingFrame();this.isDown=false;this.pointerId=null;this.drawing=[];this.renderDrawing();clearTimeout(this.autoAdvanceTimer);clearTimeout(this.stopRequestTimer);this.stopHotaru();sound.stopTrain?.();this.journey?.animation?.finish();}
+        if(!ready){this.cancelDrawingFrame();this.isDown=false;this.pointerId=null;this.drawing=[];this.renderDrawing();clearTimeout(this.autoAdvanceTimer);clearTimeout(this.stopRequestTimer);this.stopHotaru();sound.stopScene();this.journey?.animation?.finish();}
         else if(this.awaitingArrival && !this.loading && !this.preparingWord)this.resumeArrival();
         else if(this.hotaru.enabled && this.inputEnabled())this.startHotaru();
         else if(!this.loading&&!this.preparingWord&&!this.transitioning&&this.strokes.length&&this.sIdx>=this.strokes.length)this.scheduleAdvance();
@@ -531,22 +653,29 @@
         this.transitioning=true;
         const practice=this.practiceId,header=Array.from(document.querySelectorAll('header button')).map(button=>[button,button.disabled]);
         for(const [button]of header)button.disabled=true;
-        this.coachSay('しゅっぱつ、しんこう！','praise');speech.play('complete');
-        let departed=false;
-        try{departed=await this.journey.departFinale(duration=>sound.train(duration));}
+        this.coachSay('しゅっぱつ、しんこう！','praise');speech.play('departure');
+        const tailMs=this.lessonSequence?.[this.lessonIndex+1]?0:1500;
+        let departed=false,tailContinues=false;
+        try{departed=await this.journey.departFinale(duration=>{
+          // Close the doors during the stationary first second, then accelerate.
+          const stopRail=sound.train(Math.max(0,duration-1000),1000,'departure',tailMs);sound.bell();const stopDoor=sound.door(false);return completed=>{if(completed&&tailMs)tailContinues=true;else stopRail();stopDoor();sound.stopBell?.();};
+        });}
         finally{this.transitioning=false;for(const [button,disabled]of header)button.disabled=disabled;}
         if(!departed){speech.cancel();this.coachSay('ぜんぶ かけたね！','praise');return;}
         if(practice!==this.practiceId)return;
         this.trainHasLeft=true;this.saveDraft();
         if(this.lessonSequence?.[this.lessonIndex+1]){this.lessonIndex++;await this.setWord(this.lessonSequence[this.lessonIndex],null,true);}
-        else document.getElementById('btnOpenSelect').click();
+        else{
+          this.keepDepartureTailOnSelect=tailContinues;
+          try{document.getElementById('btnOpenSelect').click();}finally{this.keepDepartureTailOnSelect=false;}
+        }
       }
       async setWord(w, draft = null, keepSequence = false) {
         if (!w || !w.trim() || this.finishing || this.transitioning) return;
         clearTimeout(this.autoAdvanceTimer);clearTimeout(this.stopRequestTimer);
         const wordToken=this.wordLoadToken=(this.wordLoadToken||0)+1;
         this.wordDataReady=false;this.loading=true;this.loadGeneration=(this.loadGeneration||0)+1;this.journey?.setDataLoading(true);
-        this.preparingWord=true;this.awaitingArrival=!draft;this.stopHotaru();this.stopAnim();sound.stopTrain?.();
+        this.preparingWord=true;this.awaitingArrival=!draft;this.stopHotaru();this.stopAnim();sound.stopScene();
         this.journey?.beginReset();this.journey?.clearFinale();
         if(this.journey?.welcome)this.journey.welcome.hidden=true;
         document.querySelector('body')?.classList.remove('no-task');
@@ -611,9 +740,10 @@
         this.transitioning=true;this.stopHotaru();this.stopAnim();
         this.journey.viewport.classList.add('moving');
         const practice=this.practiceId;
-        this.coachSay(kind==='arrival'?'ほたるこちゃんの でんしゃが くるよ！':'ぜんぶ かけました！ しゅっぱつ、しんこう〜',kind==='arrival'?'guide':'praise');
+        this.coachSay(kind==='arrival'?'ほたるこちゃんの でんしゃが くるよ！':'ぜんぶ かけました！ しゅっぱつ、しんこう〜',kind==='arrival'?'arrival':'praise');
         try {
-          const played=await this.journey.bookend(kind,duration=>sound.train(duration));
+          const played=await this.journey.bookend(kind,duration=>{const stopRail=sound.train(duration,0,kind);if(kind==='arrival')sound.approach();return()=>{stopRail();sound.stopChime?.();};});
+          if(played && kind==='arrival' && practice===this.practiceId && this.orientationReady() && !document.hidden && !document.querySelector('.modal-overlay.open'))sound.door(true);
           if(!played && kind==='arrival')this.awaitingArrival=true;
           if(played && kind==='departure')this.showPracticeEnd();
           return played;
@@ -953,6 +1083,7 @@
 
         // お題選択モーダル
         onClk('btnOpenSelect', () => {
+          this.lessonLibrary?.clearEditor();this.lessonLibrary?.say('');
           this.selectCategoryTab(this.currentCategoryTab || 'hiragana');
           if (mSel) mSel.classList.add('open');
           const body=mSel?.querySelector('.modal-body');if(body)body.scrollTop=0;
@@ -1101,7 +1232,7 @@
       storageStatus(ok) {
         ok = ok && !Object.keys(this.unsavedRecords || {}).length;
         const el = document.getElementById('storageStatus');
-        el.textContent = ok ? 'かいた もじを のこしたよ' : 'もじを のこせなかったよ。とじずに おとなのひとを よんでね。';
+        el.textContent = ok ? '' : 'もじを のこせなかったよ。とじずに おとなのひとを よんでね。';
         const details=document.getElementById('storageDetails');
         if(details)details.textContent=ok?'記録はこのブラウザー内に保存しています。環境を変える前に書き出してください。':'未保存の記録があります。画面を閉じる前に、下のボタンで練習中の筆跡を書き出してください。';
         el.classList.toggle('unsaved', !ok);
@@ -1225,7 +1356,7 @@
           clearTimeout(this.autoAdvanceTimer);
           this.travelGeneration = (this.travelGeneration || 0) + 1;
           if (this.journey?.animation){if(this.journey.finale?.classList.contains('finale-departing'))this.journey.animation.cancel();else this.journey.animation.finish();}
-          sound.stopTrain?.();
+          sound.stopScene(!!this.keepDepartureTailOnSelect&&event?.currentTarget?.id==='btnOpenSelect');
           clearTimeout(this.stopRequestTimer);
           this.isDown = false; this.pointerId = null; this.drawing = []; this.renderDrawing();
           this.stopAnim(); this.stopHotaru(); this.saveDraft();
@@ -1270,22 +1401,22 @@
           else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus?.();}
         });
       }
+      async applyJourneySettings() {
+        if(this.transitioning)return false;
+        clearTimeout(this.autoAdvanceTimer);
+        this.display.direction=document.getElementById('journey-direction').value;
+        this.display.mode=document.getElementById('journey-mode').value;
+        for(const key of ['train','reduced','auto'])this.display[key]=document.getElementById('journey-'+key).checked;
+        this.rememberCurrent();sound.stopScene();this.journey.beginReset();this.journey.apply(this.display);this.resize();this.render();this.saveSettings();
+        this.updateOrientation();
+        await this.journey.refresh(this.chars,this.cIdx,this.sessions,loader,sampleCharacterPath);
+        if(this.departedPractice===this.practiceId)this.showPracticeEnd();
+        else if(!this.awaitingArrival)this.journey.revealPrepared();
+        this.updateOrientation();return true;
+      }
       bindJourneyEvents() {
-        const change = () => {
-          if (this.transitioning) return;
-          clearTimeout(this.autoAdvanceTimer);
-          this.display.direction = document.getElementById('journey-direction').value;
-          this.display.mode = document.getElementById('journey-mode').value;
-          for (const key of ['train','reduced','auto']) this.display[key] = document.getElementById('journey-' + key).checked;
-          this.rememberCurrent();this.journey.beginReset(); this.journey.apply(this.display); this.resize(); this.render(); this.saveSettings();
-          this.journey.refresh(this.chars, this.cIdx, this.sessions, loader, sampleCharacterPath).then(()=>{
-            if(this.departedPractice===this.practiceId)this.showPracticeEnd();
-            else if(!this.awaitingArrival)this.journey.revealPrepared();
-            this.updateOrientation();
-          });
-          this.updateOrientation();
-        };
-        for (const id of ['journey-mode','journey-direction','journey-train','journey-reduced','journey-auto']) document.getElementById(id).addEventListener('change',change);
+        for(const id of ['journey-mode','journey-direction','journey-train','journey-reduced','journey-auto'])
+          document.getElementById(id).addEventListener('change',()=>this.applyJourneySettings());
       }
 
       scheduleAdvance() {
@@ -1543,7 +1674,7 @@
           formatVersion: 2, favorite: false, source: globalThis.MonjiBundledStrokes?.characters?.[ch]
             ? 'KanjiVG bundled snapshot ' + globalThis.MonjiBundledStrokes.snapshot : 'KanjiVG (remote/cache)' };
         const allDone=this.chars.every((_,i)=>this.sessions[i]?.complete);
-        if(allDone){this.coachSay('ぜんぶ かけたね！','praise');this.showPracticeEnd();}
+        if(allDone){this.coachSay('ぜんぶ かけたね！','praise');speech.play('complete');this.showPracticeEnd();}
         if (!entry.archived) {
           try {
             await this.archive.put(record); entry.archived = true;
@@ -1563,7 +1694,7 @@
       }
 
       showToast(msg, type = 'info') {
-        this.coachSay(msg, 'guide');
+        this.coachSay(msg, 'request');
         if (this.display?.mode === 'fixed') {
           document.getElementById('coachMessage').textContent = msg;
           return;

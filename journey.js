@@ -75,7 +75,7 @@
       this.viewport.classList.toggle('data-loading',active);this.dataLoadingPanel.hidden=true;this.dataLoadingRetry.hidden=true;
       if(active)this.dataLoadingTimer=setTimeout(()=>{
         if(!this.viewport.classList.contains('data-loading'))return;
-        this.dataLoadingText.textContent='ただいま れっしゃがおくれております。もうしばらくおまちください。';this.dataLoadingPanel.hidden=false;
+        this.dataLoadingText.textContent='まもなく でんしゃが まいります。おまちください。';this.dataLoadingPanel.hidden=false;
       },600);
     }
     setDataError(message,retry){
@@ -139,7 +139,7 @@
       if(!this.finale)return;
       const vertical=this.display.direction==='vertical';
       const layout=finaleLayout((this.chars?.length||1)+1,this.viewport.clientWidth,this.viewport.clientHeight,this.display.direction,
-        this.finale.querySelector('h2')?.offsetHeight||60,this.finale.querySelector('.finale-actions')?.offsetHeight||64);
+        0,this.finale.querySelector('.finale-actions')?.offsetHeight||64);
       this.finale.style.setProperty('--whole-car-size',layout.size+'px');
       this.finale.style.setProperty('--station-rail-y',layout.railY+'px');
       this.finale.style.setProperty('--station-train-top',layout.trainTop+'px');
@@ -151,8 +151,7 @@
     showFinale(sessions,actions){
       this.revealPrepared();this.clearFinale();this.viewport.classList.add('word-finished');
       const panel=document.createElement('section');panel.className='journey-finale';panel.setAttribute('aria-label','かきおわった でんしゃ');
-      const title=document.createElement('h2');title.textContent='ぜんぶ かけたね！';
-      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.31.0")`;const name=document.createElement('small');name.className='station-name';name.textContent=actions.station.name;title.append(name);}
+      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.48.0")`;}
       const strip=document.createElement('div');strip.className='whole-train';strip.style.setProperty('--train-count',String(this.chars.length+1));
       const art=artwork(this.display.direction);
       const engine=document.createElement('div');engine.className='whole-train-car locomotive-car';
@@ -173,7 +172,7 @@
       const zone=document.createElement('div');zone.className='station-train-zone';zone.append(strip);
       const rail=document.createElement('div');rail.className='finale-rail';rail.setAttribute('aria-hidden','true');
       if(actions.alreadyLeft){strip.style.visibility='hidden';panel.classList.add('finale-departed','finale-departing');for(const button of [again,next])button.disabled=true;}
-      buttons.append(again,next);panel.append(rail,title,zone,buttons);this.viewport.append(panel);this.finale=panel;this.layoutFinale();
+      buttons.append(again,next);panel.append(rail,zone,buttons);this.viewport.append(panel);this.finale=panel;this.layoutFinale();
     }
     async departFinale(onStart){
       const panel=this.finale;if(!panel||panel.classList.contains('finale-departed'))return false;
@@ -184,28 +183,25 @@
       const span=vertical?(strip.offsetHeight||extent):(strip.offsetWidth||extent),distance=-(extent+span+120);
       const reduced=this.display.reduced||root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       const duration=4200;
-      let animation,stopSound;
+      let animation,stopSound,completed=false;
       try{
         if(strip.animate){
           const frames=reduced?[{opacity:1,offset:0},{opacity:1,offset:.92},{opacity:0,offset:1}]:[
             {transform:'translate(0,0)',offset:0},
-            {transform:vertical?'translateY(-12px)':'translateX(-12px)',offset:.12},
+            {transform:'translate(0,0)',offset:1/4.2},
             {transform:vertical?`translateY(${distance}px)`:`translateX(${distance}px)`,offset:1}];
           animation=strip.animate(frames,{duration,easing:'ease-in',fill:'forwards'});this.animation=animation;
-          stopSound=onStart?.(duration);await animation.finished;
+          stopSound=onStart?.(duration);await animation.finished;completed=true;
         }
         strip.style.visibility='hidden';panel.classList.add('finale-departed');return true;
       }catch{strip.style.visibility='hidden';panel.classList.add('finale-departed');return true;}
       finally{
-        stopSound?.();animation?.cancel?.();if(this.animation===animation)this.animation=null;
+        stopSound?.(completed);animation?.cancel?.();if(this.animation===animation)this.animation=null;
         if(!panel.classList.contains('finale-departed')){panel.classList.remove('finale-departing');for(const button of buttons)button.disabled=false;}
       }
     }
     setArtwork(){
       const art=artwork(this.display.direction);this.rail.style.backgroundImage=`url("${art.rail}")`;
-      const overview=root.document?.getElementById('driverOverview'),cab=root.document?.getElementById('driverTrainArt');
-      if(overview){overview.dataset.direction=this.display.direction;overview.hidden=!this.display.train;}
-      if(cab)cab.src=themed(art.locomotive,this.theme);
       for(const card of this.cards){card.art.src=themed(card.car?.classList.contains('locomotive-car')?art.locomotive:art.car,this.theme);card.rail.style.backgroundImage=`url("${art.rail}")`; }
     }
     layout(){
