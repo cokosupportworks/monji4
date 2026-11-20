@@ -155,7 +155,7 @@
     showFinale(sessions,actions){
       this.revealPrepared();this.clearFinale();this.viewport.classList.add('word-finished');
       const panel=document.createElement('section');panel.className='journey-finale';panel.setAttribute('aria-label','かきおわった でんしゃ');
-      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=4.0.0")`;}
+      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=4.1.0")`;}
       const strip=document.createElement('div');strip.className='whole-train';strip.style.setProperty('--train-count',String(this.chars.length+1));
       const art=artwork(this.display.direction);
       const engine=document.createElement('div');engine.className='whole-train-car locomotive-car';

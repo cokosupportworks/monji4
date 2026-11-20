@@ -12,28 +12,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.0.0">
-  <link rel="stylesheet" href="journey.css?v=4.0.0">
-  <link rel="stylesheet" href="album.css?v=4.0.0">
-  <link rel="stylesheet" href="practice.css?v=4.0.0">
+  <link rel="stylesheet" href="styles.css?v=4.1.0">
+  <link rel="stylesheet" href="journey.css?v=4.1.0">
+  <link rel="stylesheet" href="album.css?v=4.1.0">
+  <link rel="stylesheet" href="practice.css?v=4.1.0">
   <link rel="preload" as="image" href="assets/hotaruko/cab-departure2.png">
   <link rel="preload" as="image" href="assets/hotaruko/coach-arrival.png">
   <link rel="preload" as="image" href="assets/hotaruko/coach-guide.png">
   <link rel="preload" as="image" href="assets/hotaruko/coach-request.png">
   <link rel="preload" as="image" href="assets/hotaruko/coach-praise.png">
-  <link rel="stylesheet" href="hotaruko.css?v=4.0.0">
-  <link rel="stylesheet" href="responsive.css?v=4.0.0">
-  <link rel="stylesheet" href="tools.css?v=4.0.0">
-  <link rel="stylesheet" href="settings.css?v=4.0.0">
-  <link rel="stylesheet" href="opening.css?v=4.0.0">
-  <link rel="stylesheet" href="recovery.css?v=4.0.0">
-  <link rel="stylesheet" href="placement.css?v=4.0.0">
-  <link rel="stylesheet" href="viewport.css?v=4.0.0">
-  <link rel="stylesheet" href="usability.css?v=4.0.0">
+  <link rel="stylesheet" href="hotaruko.css?v=4.1.0">
+  <link rel="stylesheet" href="responsive.css?v=4.1.0">
+  <link rel="stylesheet" href="tools.css?v=4.1.0">
+  <link rel="stylesheet" href="settings.css?v=4.1.0">
+  <link rel="stylesheet" href="opening.css?v=4.1.0">
+  <link rel="stylesheet" href="recovery.css?v=4.1.0">
+  <link rel="stylesheet" href="placement.css?v=4.1.0">
+  <link rel="stylesheet" href="viewport.css?v=4.1.0">
+  <link rel="stylesheet" href="usability.css?v=4.1.0">
 </head>
 <body class="no-task opening-active">
   <section id="openingScreen" class="opening-screen" aria-label="もんじぼたる４ タイトルどうが">
-    <video id="openingVideo" src="assets/opening.mp4?v=4.0.0" playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-label="もんじぼたる４ タイトルどうが"></video>
+    <video id="openingVideo" src="assets/opening.mp4?v=4.1.0" playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-label="もんじぼたる４ タイトルどうが"></video>
     <button type="button" id="btnPlayOpening" class="opening-play" disabled>じゅんびちゅう…</button>
     <p id="openingStatus" class="opening-status" role="status">よみこみちゅうです。おまちください。</p>
   </section>
@@ -50,7 +50,7 @@
       <button class="btn btn-record" id="btnOpenRecord">さくひんちょう</button>
       <button class="btn btn-primary" id="btnOpenSelect">もじを えらぶ</button>
       <button class="btn" id="btnTools" aria-label="れんしゅうの どうぐを ひらく" aria-haspopup="dialog" aria-expanded="false" aria-controls="modalTools" disabled="">どうぐ</button>
-      <button class="btn settings-gear" id="btnSettings" aria-label="おとなの せってい" title="おとなの せってい"><img src="assets/gear.svg" alt="" width="28" height="28"></button>
+      <button class="btn settings-gear" id="btnSettings" aria-label="設定" title="設定"><img src="assets/gear.svg" alt="" width="28" height="28"></button>
     </div>
     <div class="word-overview"><span id="wordProgress" class="word-progress" role="status"></span><div class="word-pills" id="wordPills" aria-label="おだいの ますと、かいた もじ"></div></div>
   </header>
@@ -83,7 +83,7 @@
 
   </main>
 
-  <footer class="storage-area"><span id="storageStatus" role="status"></span><small id="appVersion">version 4.0.0　©️2026 ココサポートワークス</small></footer>
+  <footer class="storage-area"><span id="storageStatus" role="status"></span><small id="appVersion">version 4.1.0　©️2026 ココサポートワークス</small></footer>
   <div class="modal-overlay practice-tools" id="modalTools" role="dialog" aria-modal="true" aria-labelledby="toolsTitle">
     <div class="modal"><div class="modal-head"><h2 id="toolsTitle">れんしゅうの どうぐ</h2><button class="btn" id="btnCloseTools">とじる</button></div>
       <div class="practice-tool-grid"><button class="tool-btn" id="btnDemo"><span>▶️</span>おてほん</button><button class="tool-btn" id="btnUndo"><span>↩️</span>ひとつ もどす</button><button class="tool-btn" id="btnReset"><span>🔄</span>はじめから</button><button class="tool-btn active" id="btnGrid"><span class="grid-symbol" aria-hidden="true"></span>ますめ</button><button class="tool-btn active" id="btnGuide"><span>📍</span>はじめの しるし</button><button class="tool-btn" id="btnPrev"><span>⬅️</span>まえの もじ</button><button class="tool-btn" id="btnNext"><span>➡️</span>つぎの もじ</button><button class="tool-btn" id="btnSkip"><span>⏩</span>おてつだい</button></div>
@@ -151,7 +151,7 @@
   <div class="modal-overlay" id="modalSettings">
     <div class="modal">
       <div class="modal-head">
-        <span>おとなのせってい</span>
+        <span>設定</span>
         <button class="btn" id="btnCloseSettings">とじる</button>
       </div>
       <div class="modal-body">
@@ -219,11 +219,12 @@
           <input type="range" class="slider" id="sldOpac" min="10" max="100" value="100">
         </div>
 
-      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作51</small></div></div>
+      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button>
+        <div class="backup-import"><label for="backupFile">保存したJSONファイルから復元</label><input id="backupFile" type="file" accept=".json,application/json"><button id="btnImportBackup" class="btn" disabled>確認して復元する</button><button id="btnResumeRecovery" class="btn" hidden>復元した練習を再開</button><button id="btnPreviousRecovery" class="btn" hidden>切り替え前の練習を開く</button><p id="backupStatus" role="status">作品帳・練習途中のどちらのJSONも選べます。既存の記録は残し、同じ記録番号は追加しません。</p></div></div></div>
     </div>
   </div>
 
-<script src="runtime.js?v=4.0.0"></script>
+<script src="runtime.js?v=4.1.0"></script>
 
 
 </body></html>

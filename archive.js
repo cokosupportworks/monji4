@@ -32,6 +32,40 @@
       });
     }
     put(record) { return this.run('records', 'readwrite', store => store.put(record)); }
+    async restoreBackup(prepared){
+      await this.pending;
+      return new Promise((resolve,reject)=>{
+        const tx=this.database.transaction(['records','state'],'readwrite'),store=tx.objectStore('records');
+        const result={added:0,skipped:0,recovery:!!prepared.draft};let problem;
+        for(const record of prepared.records){
+          const get=store.get(record.id);get.onsuccess=()=>{
+            if(get.result){
+              if(get.result.char!==record.char||(get.result.word||get.result.char)!==record.word){problem=new Error('記録番号が既存の別の文字と重なっています。復元を中止しました。');tx.abort();return;}
+              result.skipped++;
+            }else{store.put(record);result.added++;}
+          };
+        }
+        if(prepared.draft)tx.objectStore('state').put(prepared.draft,'importedRecovery');
+        tx.oncomplete=()=>resolve(result);
+        tx.onabort=tx.onerror=()=>reject(problem||tx.error||new Error('復元できませんでした。既存の記録は変更していません。'));
+      });
+    }
+    async activateRecovery(previous=false){
+      await this.pending;
+      return new Promise((resolve,reject)=>{
+        const tx=this.database.transaction('state','readwrite'),store=tx.objectStore('state');let target,problem;
+        const get=store.get(previous?'previousRecovery':'importedRecovery');
+        get.onsuccess=()=>{
+          target=get.result;if(!target?.word){problem=new Error('再開できる練習データがありません。');tx.abort();return;}
+          const current=store.get('draft');current.onsuccess=()=>{
+            if(current.result?.word)store.put(current.result,'previousRecovery');
+            store.put(target,'draft');
+          };
+        };
+        tx.oncomplete=()=>resolve(target);
+        tx.onabort=tx.onerror=()=>reject(problem||tx.error||new Error('練習を切り替えられませんでした。'));
+      });
+    }
     async deleteRecords(ids){
       const keys=[...new Set(ids)].filter(Boolean);await this.pending;
       if(!keys.length)return 0;

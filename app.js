@@ -1110,7 +1110,7 @@
         });
         onClk('btnWelcomeSelect',()=>document.getElementById('btnOpenSelect').click());
         onClk('btnCloseSelect', () => { if (mSel) mSel.classList.remove('open'); });
-        onClk('btnSettings', () => { if (mSet) mSet.classList.add('open'); });
+        onClk('btnSettings', () => { if (mSet) mSet.classList.add('open');this.refreshRecoveryButtons(); });
         onClk('btnCloseSettings', () => { if (mSet) mSet.classList.remove('open'); });
 
         document.querySelectorAll('#tabBar .tab-btn').forEach(btn => {
@@ -1392,12 +1392,67 @@
         });
         window.addEventListener('pagehide', () => {suspend();speech.cancel();sound.retire();});
         window.addEventListener('pageshow', () => {if(!document.hidden){sound.init();speech.unlock();}});
+        this.bindBackupImport();
         document.getElementById('btnExportPending').onclick = () => {
           this.rememberCurrent();
-          this.downloadJSON({ format: 'monjibotaru4-recovery', version: 1, date: new Date().toISOString(), word: this.word, items: this.sessions, practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt, unsavedRecords: Object.values(this.unsavedRecords) }, 'monjibotaru4-recovery.json');
+          this.downloadJSON({ format: 'monjibotaru4-recovery', version: 1, date: new Date().toISOString(), word: this.word, items: this.sessions, practiceId: this.practiceId, practiceStartedAt: this.practiceStartedAt, unsavedRecords: Object.values(this.unsavedRecords),index:this.cIdx,sequence:this.lessonSequence||[],sequenceIndex:this.lessonIndex||0 }, 'monjibotaru4-recovery.json');
         };
       }
 
+
+      bindBackupImport(){
+        const file=document.getElementById('backupFile'),apply=document.getElementById('btnImportBackup');
+        file.onchange=()=>this.readBackupFile(file.files?.[0]);
+        apply.onclick=()=>this.restoreSelectedBackup();
+        document.getElementById('btnResumeRecovery').onclick=()=>this.resumeRecovery(false);
+        document.getElementById('btnPreviousRecovery').onclick=()=>this.resumeRecovery(true);
+      }
+      async refreshRecoveryButtons(){
+        if(!this.archive?.state)return;
+        try{
+          const [imported,previous]=await Promise.all([this.archive.state('importedRecovery'),this.archive.state('previousRecovery')]);
+          document.getElementById('btnResumeRecovery').hidden=!imported?.word;
+          document.getElementById('btnPreviousRecovery').hidden=!previous?.word;
+        }catch{}
+      }
+      async readBackupFile(file){
+        if(this.backupBusy)return;
+        const token=this.backupReadToken=(this.backupReadToken||0)+1,status=document.getElementById('backupStatus'),button=document.getElementById('btnImportBackup');
+        this.preparedBackup=null;button.disabled=true;
+        if(!file){status.textContent='JSONファイルを選んでください。';return;}
+        status.textContent='ファイルを確認しています…';
+        try{
+          if(file.size>64*1024*1024)throw new Error('ファイルが大きすぎます。64MB以内のファイルを選んでください。');
+          let raw;try{raw=JSON.parse(await file.text());}catch{throw new Error('JSONファイルを読み取れません。もんじぼたる４で書き出したファイルを選んでください。');}
+          const prepared=MonjiBackup.prepare(raw);if(token!==this.backupReadToken)return;
+          this.preparedBackup=prepared;button.disabled=false;
+          status.textContent=`作品帳の記録：${prepared.records.length}件。`+(prepared.draft?`練習途中：「${prepared.draft.word}」の${prepared.draft.index+1}文字目。`:'')+'既存の記録を残して追加し、同じ記録番号は追加しません。「確認して復元する」を押してください。';
+        }catch(error){if(token===this.backupReadToken)status.textContent=error.message;}
+      }
+      async restoreSelectedBackup(){
+        if(!this.preparedBackup||this.backupBusy)return;
+        const file=document.getElementById('backupFile'),button=document.getElementById('btnImportBackup'),status=document.getElementById('backupStatus');
+        this.backupBusy=true;button.disabled=file.disabled=true;
+        try{
+          const result=await this.archive.restoreBackup(this.preparedBackup);
+          for(const record of this.preparedBackup.records)this.knownChars?.add(record.char);
+          status.textContent=`復元しました。追加${result.added}件／重複${result.skipped}件。`+(result.recovery?'「復元した練習を再開」から続けられます。練習条件は現在の設定を使います。':'作品帳で確認できます。');
+          this.preparedBackup=null;await this.refreshRecoveryButtons();
+        }catch(error){status.textContent='復元できませんでした。既存の記録は変更していません。'+error.message;button.disabled=false;}
+        finally{this.backupBusy=false;file.disabled=false;}
+      }
+      async resumeRecovery(previous=false){
+        if(this.backupBusy||this.transitioning||this.finishing)return;
+        const status=document.getElementById('backupStatus');this.backupBusy=true;
+        try{
+          this.saveDraft();
+          const draft=await this.archive.activateRecovery(previous);
+          await this.setWord(draft.word,draft,true);
+          document.getElementById('modalSettings').classList.remove('open');
+          this.updateOrientation();await this.refreshRecoveryButtons();
+        }catch(error){status.textContent='再開できませんでした。'+error.message;}
+        finally{this.backupBusy=false;}
+      }
 
       bindPracticeTools(){
         const button=document.getElementById('btnTools'),modal=document.getElementById('modalTools'),closeButton=document.getElementById('btnCloseTools');

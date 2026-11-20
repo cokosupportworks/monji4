@@ -52,3 +52,9 @@
 .storage-area {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px 6px;text-align:center;}
 #storageStatus:empty {display:none;}
 #appVersion {display:block;font-size:10px;line-height:1.3;color:#68776b;white-space:nowrap;}
+
+.backup-import {display:flex;flex-direction:column;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid #d5d8c7;}
+.backup-import label {font-weight:700;}
+.backup-import input {max-width:100%;font-size:13px;user-select:auto;}
+.backup-import p {font-size:12px;line-height:1.6;}
+.backup-import [hidden] {display:none!important;}
