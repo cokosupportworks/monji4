@@ -201,7 +201,7 @@
 
     // User-supplied recordings share the same unlocked audio context as the effects.
     class RecordedVoice {
-      constructor(){this.enabled=true;this.generation=0;this.buffers=new Map();this.files=new Map();this.paths={speed:'assets/voice/slow.wav',pause:'assets/voice/imagine.wav',complete:'assets/voice/completed.wav',departure:'assets/voice/departure.wav',welcome:'assets/voice/welcome.wav'};}
+      constructor(){this.enabled=true;this.generation=0;this.buffers=new Map();this.files=new Map();this.paths={speed:'assets/voice/slow.wav',pause:'assets/voice/imagine.wav',complete:'assets/voice/completed.wav',departure:'assets/voice/departure.wav',shape:'assets/voice/shape.wav',welcome:'assets/voice/welcome.wav'};}
       unlock(){
         const ctx=sound.ctx;if(!ctx?.decodeAudioData||typeof fetch!=='function')return;
         if(this.context!==ctx){this.context=ctx;this.buffers.clear();}
@@ -424,7 +424,7 @@
         this.bindFoundationEvents();
         this.bindPracticeTools();
         this.resize();
-        window.addEventListener('resize', () => { this.resize(); this.render();this.updateOrientation(); });
+        window.addEventListener('resize', () => { const extras=document.getElementById('selectionExtras');if(extras&&!(window.innerWidth<=700&&window.innerHeight>window.innerWidth))extras.open=true;this.resize(); this.render();this.updateOrientation(); });
         window.addEventListener('orientationchange',()=>this.updateOrientation());
         this.restoreSettings(window.monjiSettings || {});
         if(globalThis.MonjiLessons)this.lessonLibrary=new MonjiLessons.LessonLibrary({
@@ -1103,6 +1103,7 @@
         // お題選択モーダル
         onClk('btnOpenSelect', () => {
           this.lessonLibrary?.clearEditor();this.lessonLibrary?.say('');
+          const extras=document.getElementById('selectionExtras');if(extras)extras.open=!(window.innerWidth<=700&&window.innerHeight>window.innerWidth);
           this.selectCategoryTab(this.currentCategoryTab || 'hiragana');
           if (mSel) mSel.classList.add('open');
           const body=mSel?.querySelector('.modal-body');if(body)body.scrollTop=0;
@@ -1498,7 +1499,7 @@
         catch { note.textContent='さくひんを ひらけなかったよ。おとなのひとと、もういちど ためしてね。'; return; }
         if(generation !== this.replayGeneration)return;
         note.hidden=true;
-        const backup=document.createElement('button');backup.className='btn';backup.textContent='ほぞんようの ファイルを つくる';
+        const backup=document.createElement('button');backup.className='btn';backup.textContent='保存用のファイルを作る';
         backup.onclick=()=>this.downloadJSON({format:'monjibotaru4-archive',version:1,records},'monjibotaru4-handwriting.json');
         const tabs=document.createElement('div');tabs.className='archive-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','さくひんちょうの みかた');
         const words=document.createElement('button'),characters=document.createElement('button');
@@ -1512,20 +1513,38 @@
         }
         tabs.append(words,characters);body.append(tabs,wordPage,charPage);
         const grownup=document.createElement('details');grownup.className='album-grownup';
-        const summary=document.createElement('summary');summary.textContent='おとなのかたへ';
-        const help=document.createElement('p');help.textContent='かいたもじを ファイルに ほぞんできます。まえの さくひんは、ひとつの ことばに まとめられない ことがあります。もとの もじは のこっています。';
-        grownup.append(summary,help,backup);body.append(grownup);
+        const summary=document.createElement('summary');summary.textContent='大人の方へ';
+        const help=document.createElement('p');help.textContent='書いた文字をファイルに保存できます。以前の作品は、一つの言葉にまとめられない場合がありますが、元の文字の記録は残っています。削除する場合は、先に作品または「１もじずつ」の文字を選んでください。選んだ文字・言葉の全履歴を削除します。登録済みのお題は削除しません。';
+        const remove=document.createElement('button');remove.id='btnDeleteArchiveRecords';remove.className='btn archive-delete';remove.textContent='この文字の記録を消す';remove.disabled=true;
+        const targetInfo=document.createElement('p');targetInfo.className='archive-delete-target';targetInfo.textContent='削除する文字・言葉を選んでください。';
+        const deletionStatus=document.createElement('p');deletionStatus.className='archive-delete-status';deletionStatus.setAttribute('role','status');
+        let deleteTarget=null;
+        const setDeleteTarget=target=>{deleteTarget=target;remove.disabled=!target;targetInfo.textContent=target?`削除対象：${target.kind==='word'?'お題':'文字'}「${target.value}」の全履歴`:'削除する文字・言葉を選んでください。';};
+        remove.onclick=async()=>{
+          const target=deleteTarget;if(!target||remove.disabled)return;
+          const matches=records.filter(r=>target.kind==='word'?(r.word||r.char)===target.value:r.char===target.value);
+          if(!matches.length)return;
+          if(typeof window.confirm!=='function'||!window.confirm(`「${target.value}」の記録${matches.length}件を削除します。作品帳の文字・言葉の両方に反映され、元に戻せません。削除しますか？`))return;
+          remove.disabled=true;
+          try{
+            await this.archive.deleteRecords(matches.map(r=>r.id));
+            for(const r of matches)delete this.unsavedRecords?.[r.id];
+            await this.renderRecordModal();
+          }catch{deletionStatus.textContent='削除できませんでした。記録は表示したままです。もう一度お試しください。';remove.disabled=false;}
+        };
+        grownup.append(summary,help,targetInfo,remove,deletionStatus,backup);body.append(grownup);
         const select=(wordMode,record)=>{
           this.replayGeneration++;this.wordAlbum?.cancelReplay();
           wordPage.hidden=!wordMode;charPage.hidden=wordMode;
           words.setAttribute('aria-selected',String(wordMode));characters.setAttribute('aria-selected',String(!wordMode));
-          if(!wordMode)this.renderCharacterArchive(records,charPage,record?.id);
+          setDeleteTarget(wordMode&&this.wordAlbum?.selectedEntry?{kind:'word',value:this.wordAlbum.selectedEntry.word}:null);
+          if(!wordMode)this.renderCharacterArchive(records,charPage,record?.id,record=>setDeleteTarget({kind:'character',value:record.char}));
         };
-        this.wordAlbum=new MonjiWords.WordAlbum(wordPage,records,record=>select(false,record));
+        this.wordAlbum=new MonjiWords.WordAlbum(wordPage,records,record=>select(false,record),entry=>setDeleteTarget(entry?{kind:'word',value:entry.word}:null));
         words.onclick=()=>select(true);characters.onclick=()=>select(false);select(true);
       }
 
-      renderCharacterArchive(records, container, selectedId) {
+      renderCharacterArchive(records, container, selectedId, onSelected) {
         const excludedSelection=records.some(record=>record.id===selectedId&&MonjiWords.isFullyAssisted(record));
         records=records.filter(record=>!MonjiWords.isFullyAssisted(record));
         container.replaceChildren();
@@ -1534,6 +1553,7 @@
         const detail = document.createElement('div'); detail.className = 'archive-detail';
         container.append(list, detail);
         const show = record => {
+          onSelected?.(record);
           this.replayGeneration++;
           detail.replaceChildren();
           for(const button of list.querySelectorAll('.archive-letter-card'))button.setAttribute('aria-pressed',String(button.dataset.recordId===record.id));
@@ -1714,6 +1734,7 @@
 
       showToast(msg, type = 'info') {
         this.coachSay(msg, 'request');
+        if(msg==='せんの かたちを たしかめてみよう')speech.play('shape');
         if (this.display?.mode === 'fixed') {
           document.getElementById('coachMessage').textContent = msg;
           return;

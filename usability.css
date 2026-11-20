@@ -1,0 +1,54 @@
+/* Adult-only archive actions. */
+#modalRecord .album-grownup .archive-delete {display:block;margin:10px 0;color:#8c3c31;border-color:#c99181;}
+#modalRecord .archive-delete-target,#modalRecord .archive-delete-status {font-size:13px;line-height:1.6;}
+#modalSelect .selection-extras {width:100%;}
+#modalSelect .selection-extras>summary {display:none;}
+#modalSelect .selection-extras[open] {display:flex;flex-direction:column;gap:10px;}
+@media(orientation:portrait) and (max-width:700px){
+ /* Two compact covers per row, including the narrowest phones. */
+ #modalRecord .word-book-index,#modalRecord .archive-list {grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 9px;}
+ #modalRecord .word-book-entry {min-height:0;min-width:0;padding:10px;gap:7px;}
+ #modalRecord .album-cover-preview {height:76px;min-height:76px;}
+ #modalRecord .album-cover-stamp {position:static;align-self:flex-end;font-size:10px;padding:3px 5px;}
+ #modalRecord .word-book-entry strong {font-size:17px;overflow-wrap:anywhere;}
+ #modalRecord .album-cover-meta {font-size:11px;}
+ #modalRecord .album-cover-date {font-size:10px;}
+ #modalRecord .archive-letter-card {flex-direction:column;align-items:flex-start;}
+ /* The keyboard gets the flexible height; optional controls start folded. */
+ #modalSelect .modal-head {padding:6px 10px;min-height:40px;}
+ #modalSelect .modal-head .btn {padding:6px 10px;font-size:13px;min-height:32px;}
+ #modalSelect .selection-source-tabs {padding:4px 8px 0;gap:4px;}
+ #modalSelect .selection-source-tabs .btn {font-size:12px;padding:6px;min-height:32px;}
+ #modalSelect .modal-body {min-height:0;overflow:hidden;padding:6px 8px;gap:4px;}
+ #modalSelect .preset-panel {flex:1;min-height:0;height:100%;gap:5px;}
+ #modalSelect .keyboard-help,#modalSelect .kana-modifiers small {display:none;}
+ #modalSelect .tab-bar {flex:none;min-height:34px;margin:0;padding:0;}
+ #modalSelect .tab-btn {font-size:12px;padding:5px 8px;min-height:32px;}
+ #modalSelect .kana-modifiers {flex:none;gap:4px;}
+ #modalSelect .kana-modifiers .btn {min-height:30px;font-size:12px;padding:4px;}
+ #modalSelect #charGrid {flex:1;height:auto;min-height:0;max-height:none;overflow-y:auto;gap:5px;}
+ #modalSelect #charGrid .char-card {height:40px;min-height:40px;}
+ #modalSelect .kana-gap {min-height:40px;}
+ #modalSelect .keyboard-section-title {padding-top:4px;font-size:11px;}
+ #modalSelect .saved-lessons-section {min-height:0;overflow-y:auto;}
+ #modalSelect .selection-composer {flex:none;max-height:40dvh;padding:6px 8px;gap:4px;overflow-y:auto;}
+ #modalSelect .practice-mode-tabs .btn {min-height:28px;padding:4px;font-size:12px;}
+ #modalSelect .draft-heading {font-size:11px;}
+ #modalSelect .lesson-draft-preview {min-height:38px;max-height:76px;padding:4px;gap:4px;}
+ #modalSelect .draft-character {height:30px;width:27px;font-size:22px;}
+ #modalSelect .draft-placeholder {font-size:12px;}
+ #modalSelect .selection-extras>summary {display:block;font-size:12px;min-height:24px;padding:2px;}
+ #modalSelect .selection-extras[open] {display:block;}
+ #modalSelect .selection-extras[open]>* {margin-bottom:5px;}
+ #modalSelect .selection-composer .lesson-status {font-size:12px;padding:3px;}
+ #modalSelect .selection-composer .lesson-status:empty {display:none;}
+ #modalSelect .selection-start {min-height:40px;font-size:15px;margin:0;}
+ #modalSelect .selection-composer>#lessonQueuePanel {flex:none;min-height:0;max-height:90px;overflow-y:auto;padding:5px;}
+ #modalSelect .queue-header h3 {font-size:12px;}
+ #modalSelect #lessonQueueList .btn {min-height:28px;padding:3px;}
+ #modalSelect .orientation-hint {font-size:12px;padding:5px;}
+}
+
+.storage-area {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px 6px;text-align:center;}
+#storageStatus:empty {display:none;}
+#appVersion {display:block;font-size:10px;line-height:1.3;color:#68776b;white-space:nowrap;}

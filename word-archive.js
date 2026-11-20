@@ -81,12 +81,13 @@
   return withTime?day+' '+String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0'):day;
  }
  class WordAlbum{
-  constructor(container,records,onCharacter){
-   this.container=container;this.records=records;this.onCharacter=onCharacter;this.token=0;
+  constructor(container,records,onCharacter,onSelection){
+   this.container=container;this.records=records;this.onCharacter=onCharacter;this.onSelection=onSelection;this.token=0;
    this.words=groupWords(records);this.drawIndex();
   }
   cancelReplay(){this.token++;}
   drawIndex(){
+   this.selectedEntry=null;this.onSelection?.(null);
    this.cancelReplay();this.container.replaceChildren();
    const hero=document.createElement('div');hero.className='album-hero';
    const firefly=document.createElement('div');firefly.className='album-firefly hotaruko-bust';firefly.setAttribute('role','img');firefly.setAttribute('aria-label','ほたるこちゃん');
@@ -117,6 +118,7 @@
    if(!this.words.length){const p=document.createElement('p');p.className='album-empty';p.textContent='はじめの いちまいを つくろう。もじを かくと、ここに あつまるよ。';this.container.append(p);}
   }
   drawWord(entry,selected=0){
+   this.selectedEntry=entry;this.onSelection?.(entry);
    this.cancelReplay();this.container.replaceChildren();
    const back=document.createElement('button');back.className='btn album-back';back.textContent='← ことばを えらぶ';back.onclick=()=>this.drawIndex();
    const heading=document.createElement('h3');heading.className='album-word-heading';heading.textContent=entry.word;this.container.append(back,heading);

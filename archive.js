@@ -32,6 +32,16 @@
       });
     }
     put(record) { return this.run('records', 'readwrite', store => store.put(record)); }
+    async deleteRecords(ids){
+      const keys=[...new Set(ids)].filter(Boolean);await this.pending;
+      if(!keys.length)return 0;
+      return new Promise((resolve,reject)=>{
+        const tx=this.database.transaction('records','readwrite'),store=tx.objectStore('records');
+        try{for(const id of keys)store.delete(id);}catch(error){tx.abort();reject(error);return;}
+        tx.oncomplete=()=>resolve(keys.length);
+        tx.onabort=tx.onerror=()=>reject(tx.error||new Error('記録を削除できませんでした'));
+      });
+    }
     async list() { return (await this.run('records', 'readonly', store => store.getAll())).sort((a, b) => b.date.localeCompare(a.date)); }
     state(key) { return this.run('state', 'readonly', store => store.get(key)); }
     saveState(key, value) { return this.run('state', 'readwrite', store => store.put(value, key)); }

@@ -155,7 +155,7 @@
     showFinale(sessions,actions){
       this.revealPrepared();this.clearFinale();this.viewport.classList.add('word-finished');
       const panel=document.createElement('section');panel.className='journey-finale';panel.setAttribute('aria-label','かきおわった でんしゃ');
-      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=0.50.0")`;}
+      if(actions.station){panel.dataset.station=actions.station.id;panel.style.backgroundImage=`url("${this.display.direction==='vertical'?actions.station.top:actions.station.side}?v=4.0.0")`;}
       const strip=document.createElement('div');strip.className='whole-train';strip.style.setProperty('--train-count',String(this.chars.length+1));
       const art=artwork(this.display.direction);
       const engine=document.createElement('div');engine.className='whole-train-car locomotive-car';
@@ -172,7 +172,7 @@
       });
       const buttons=document.createElement('div');buttons.className='finale-actions';
       const again=document.createElement('button');again.className='btn btn-primary';again.textContent='もういっかい';again.onclick=actions.again;
-      const next=document.createElement('button');next.className='btn';next.textContent=actions.hasNext?'つぎのおだい':'おだいをえらぶ';next.onclick=actions.next;
+      const next=document.createElement('button');next.className='btn';next.textContent=actions.hasNext?'つぎのおだい':'もじをえらぶ';next.onclick=actions.next;
       const zone=document.createElement('div');zone.className='station-train-zone';zone.append(strip);
       const rail=document.createElement('div');rail.className='finale-rail';rail.setAttribute('aria-hidden','true');
       if(actions.alreadyLeft){strip.style.visibility='hidden';panel.classList.add('finale-departed','finale-departing');for(const button of [again,next])button.disabled=true;}

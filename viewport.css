@@ -6,7 +6,6 @@ main {flex:1 1 0;min-height:0;max-height:100%;grid-template-rows:minmax(0,1fr);}
 .center-container {height:100%;min-height:0;max-height:100%;max-width:none;min-width:0;}
 .journey {flex:1 1 0;min-height:0;}
 .storage-area {flex:0 0 auto;}
-.storage-area:has(#storageStatus:empty) {display:none;}
 /* Keep the portrait and frame anchored while showing the entire message. */
 .coach-copy {flex:1 1 0;min-width:0;height:100%;max-height:none;overflow:visible;display:flex;flex-direction:column;justify-content:center;}
 .coach .coach-copy span {flex:none;line-height:1.2;margin-bottom:3px;}

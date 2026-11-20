@@ -12,27 +12,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=0.50.0">
-  <link rel="stylesheet" href="journey.css?v=0.50.0">
-  <link rel="stylesheet" href="album.css?v=0.50.0">
-  <link rel="stylesheet" href="practice.css?v=0.50.0">
+  <link rel="stylesheet" href="styles.css?v=4.0.0">
+  <link rel="stylesheet" href="journey.css?v=4.0.0">
+  <link rel="stylesheet" href="album.css?v=4.0.0">
+  <link rel="stylesheet" href="practice.css?v=4.0.0">
   <link rel="preload" as="image" href="assets/hotaruko/cab-departure2.png">
   <link rel="preload" as="image" href="assets/hotaruko/coach-arrival.png">
   <link rel="preload" as="image" href="assets/hotaruko/coach-guide.png">
   <link rel="preload" as="image" href="assets/hotaruko/coach-request.png">
   <link rel="preload" as="image" href="assets/hotaruko/coach-praise.png">
-  <link rel="stylesheet" href="hotaruko.css?v=0.50.0">
-  <link rel="stylesheet" href="responsive.css?v=0.50.0">
-  <link rel="stylesheet" href="tools.css?v=0.50.0">
-  <link rel="stylesheet" href="settings.css?v=0.50.0">
-  <link rel="stylesheet" href="opening.css?v=0.50.0">
-  <link rel="stylesheet" href="recovery.css?v=0.50.0">
-  <link rel="stylesheet" href="placement.css?v=0.50.0">
-  <link rel="stylesheet" href="viewport.css?v=0.50.0">
+  <link rel="stylesheet" href="hotaruko.css?v=4.0.0">
+  <link rel="stylesheet" href="responsive.css?v=4.0.0">
+  <link rel="stylesheet" href="tools.css?v=4.0.0">
+  <link rel="stylesheet" href="settings.css?v=4.0.0">
+  <link rel="stylesheet" href="opening.css?v=4.0.0">
+  <link rel="stylesheet" href="recovery.css?v=4.0.0">
+  <link rel="stylesheet" href="placement.css?v=4.0.0">
+  <link rel="stylesheet" href="viewport.css?v=4.0.0">
+  <link rel="stylesheet" href="usability.css?v=4.0.0">
 </head>
 <body class="no-task opening-active">
   <section id="openingScreen" class="opening-screen" aria-label="もんじぼたる４ タイトルどうが">
-    <video id="openingVideo" src="assets/opening.mp4?v=0.50.0" playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-label="もんじぼたる４ タイトルどうが"></video>
+    <video id="openingVideo" src="assets/opening.mp4?v=4.0.0" playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-label="もんじぼたる４ タイトルどうが"></video>
     <button type="button" id="btnPlayOpening" class="opening-play" disabled>じゅんびちゅう…</button>
     <p id="openingStatus" class="opening-status" role="status">よみこみちゅうです。おまちください。</p>
   </section>
@@ -82,7 +83,7 @@
 
   </main>
 
-  <footer class="storage-area"><span id="storageStatus" role="status">じぶんの ペースで かいてみよう</span></footer>
+  <footer class="storage-area"><span id="storageStatus" role="status"></span><small id="appVersion">version 4.0.0　©️2026 ココサポートワークス</small></footer>
   <div class="modal-overlay practice-tools" id="modalTools" role="dialog" aria-modal="true" aria-labelledby="toolsTitle">
     <div class="modal"><div class="modal-head"><h2 id="toolsTitle">れんしゅうの どうぐ</h2><button class="btn" id="btnCloseTools">とじる</button></div>
       <div class="practice-tool-grid"><button class="tool-btn" id="btnDemo"><span>▶️</span>おてほん</button><button class="tool-btn" id="btnUndo"><span>↩️</span>ひとつ もどす</button><button class="tool-btn" id="btnReset"><span>🔄</span>はじめから</button><button class="tool-btn active" id="btnGrid"><span class="grid-symbol" aria-hidden="true"></span>ますめ</button><button class="tool-btn active" id="btnGuide"><span>📍</span>はじめの しるし</button><button class="tool-btn" id="btnPrev"><span>⬅️</span>まえの もじ</button><button class="tool-btn" id="btnNext"><span>➡️</span>つぎの もじ</button><button class="tool-btn" id="btnSkip"><span>⏩</span>おてつだい</button></div>
@@ -126,9 +127,11 @@
         <div class="practice-mode-tabs" aria-label="れんしゅうの しかた"><button class="btn" id="btnSingleMode" aria-pressed="true">ひとつの おだい</button><button class="btn" id="btnSequenceMode" aria-pressed="false">れんぞく おだい</button></div>
         <div class="draft-heading"><strong id="draftTitle">いま つくっている おだい</strong><span id="draftCount">0 / 20もじ</span></div>
         <div id="lessonDraftPreview" class="lesson-draft-preview" aria-label="つくっている おだい"></div>
+        <details class="selection-extras" id="selectionExtras" open><summary>けす・とうろく・キーボード</summary>
         <div class="quick-registration" id="quickRegistration"><input type="hidden" id="customLabel"><button type="button" class="btn" id="btnSaveLesson">このおだいをとうろくする</button><button type="button" class="btn" id="btnCancelLessonEdit" hidden>なおすのを やめる</button></div>
         <div class="draft-tools"><button class="btn" id="btnDraftBackspace">１もじ けす</button><button class="btn" id="btnDraftClear">ぜんぶ けす</button><button class="btn" id="btnQueueDraft" hidden="">この おだいを ならべて、つぎを つくる</button></div>
         <details class="manual-entry"><summary>キーボードで いれる</summary><label>もじや ことば<input type="text" class="text-input" id="customInput" placeholder="20もじまで" maxlength="40" autocomplete="off"></label></details>
+        </details>
         <p id="lessonStatus" class="lesson-status" role="status"></p>
         <section class="lesson-queue-section" id="lessonQueuePanel" hidden><div class="queue-header"><h3>おだいの じゅんばん</h3><button class="btn" id="btnClearLessonQueue">ならびを けす</button></div><ol id="lessonQueueList"></ol></section>
         <button class="btn btn-primary selection-start" id="btnApplyCustom" disabled="">この おだいで はじめる</button>
@@ -216,11 +219,11 @@
           <input type="range" class="slider" id="sldOpac" min="10" max="100" value="100">
         </div>
 
-      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作㊿</small></div></div>
+      <div class="grownup-records" style="margin-top: 0px;"><p id="storageDetails">記録はこのブラウザー内に保存します。環境を変える前に書き出してください。</p><button id="btnExportPending" class="btn">練習中の筆跡を書き出す</button><small>改修試作51</small></div></div>
     </div>
   </div>
 
-<script src="runtime.js?v=0.50.0"></script>
+<script src="runtime.js?v=4.0.0"></script>
 
 
 </body></html>
